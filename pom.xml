@@ -83,11 +83,6 @@
 			<version>2.6</version>
 		</dependency>
 		<dependency>
-			<groupId>com.blockwithme</groupId>
-			<artifactId>Base40</artifactId>
-			<version>0.0.4-SNAPSHOT</version>
-		</dependency>
-		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>0.11.6</version>
@@ -97,6 +92,11 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 		    <version>14.0-rc2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.blockwithme</groupId>
+			<artifactId>Base40</artifactId>
+			<version>0.0.4</version>
 		</dependency>
 	</dependencies>
 	<name>Hacktors</name>

@@ -26,17 +26,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class Generators {
-    /** The random number generator */
+    /** The random number generator. */
     private static final Random RND = Util.RND;
 
-    /** The village houses coordinates */
-    private static final int[] HOUSES = new int[] { 1, 1, 1, 9, 9, 1, 9, 9 };
+    /** The village houses coordinates. */
+    private static final int[] HOUSES = new int[] {1, 1, 1, 9, 9, 1, 9, 9};
 
     /** The houses corners coordinates, relative to first house block. */
-    private static final int[] CORNERS = new int[] { 0, 0, 0, 5, 5, 0, 5, 5 };
+    private static final int[] CORNERS = new int[] {0, 0, 0, 5, 5, 0, 5, 5};
 
     /** The houses doors coordinates, relative to first house block. */
-    private static final int[] DOORS = new int[] { 3, 0, 0, 3, 5, 2, 2, 5 };
+    private static final int[] DOORS = new int[] {3, 0, 0, 3, 5, 2, 2, 5};
 
     /** Fills in N block at random with specific type. */
     private static void fillN(final Chunk chunk, final int n,
@@ -97,10 +97,12 @@ public class Generators {
                     final int hy = HOUSES[1 + i * 2];
                     // First the walls
                     for (int j = 1; j < 6; j++) {
-                        chunk.setBlockLocal(hx + j, hy, Block.create(blockType));
+                        chunk.setBlockLocal(hx + j, hy,
+                        		Block.create(blockType));
                         chunk.setBlockLocal(hx + j, hy + 5,
                                 Block.create(blockType));
-                        chunk.setBlockLocal(hx, hy + j, Block.create(blockType));
+                        chunk.setBlockLocal(hx, hy + j,
+                        		Block.create(blockType));
                         chunk.setBlockLocal(hx + 5, hy + j,
                                 Block.create(blockType));
                     }
@@ -117,11 +119,13 @@ public class Generators {
                     final int door = RND.nextInt(4);
                     final int doorX = DOORS[door * 2];
                     final int doorY = DOORS[door * 2 + 1];
-                    final BlockType doorType = RND.nextBoolean() ? BlockType.OpenDoor
+                    final BlockType doorType = RND.nextBoolean()
+                    		? BlockType.OpenDoor
                             : BlockType.ClosedDoor;
                     chunk.setBlockLocal(doorX, doorY, Block.create(doorType));
                     // Now the chest
-                    final BlockType chestType = RND.nextBoolean() ? BlockType.ClosedChest
+                    final BlockType chestType = RND.nextBoolean()
+                    		? BlockType.ClosedChest
                             : BlockType.EmptyChest;
                     chunk.setBlockLocal(3, 3, Block.create(chestType));
                 }
@@ -130,8 +134,8 @@ public class Generators {
     };
 
     /** All normal terrain generators. */
-    public static final Generator[] ALL_TERRAIN = new Generator[] { EMPTY,
-            PLAIN, FOREST, MOUNTAIN, VILLAGE };
+    public static final Generator[] ALL_TERRAIN = new Generator[] {EMPTY,
+            PLAIN, FOREST, MOUNTAIN, VILLAGE};
 
     /** Chooses one of the other generators at random, and calls it. */
     public static final Generator RANDOM = new RandomGenerator(ALL_TERRAIN);

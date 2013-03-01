@@ -17,17 +17,35 @@ package com.blockwithme.hacktors;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import com.blockwithme.util.Enum40;
+
 /**
  * Direction that some mobile is pointing to.
  *
  * @author monster
  */
 @ParametersAreNonnullByDefault
-public enum Direction {
-    XUp, XDown, YUp, YDown;
+public class Direction extends Enum40<Direction>{
+	public static final Direction XUp = new Direction();
+	public static final Direction XDown = new Direction();
+	public static final Direction YUp = new Direction();
+	public static final Direction YDown = new Direction();
 
-    /** Chooses one direction at random. */
+	/** All the values */
+	public static final Direction[] VALUES = Enum40.values(Direction.class);
+
+	/** Default constructor. */
+    protected Direction() {
+		this(Direction.class);
+	}
+
+	/** Constructor for subclasses. */
+    protected Direction(final Class<? extends Direction> enumClass) {
+		super(enumClass);
+	}
+
+	/** Chooses one direction at random. */
     public static Direction choose() {
-        return values()[Util.RND.nextInt(values().length)];
+        return VALUES[Util.RND.nextInt(VALUES.length)];
     }
 }

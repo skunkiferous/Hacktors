@@ -17,12 +17,28 @@ package com.blockwithme.hacktors;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import com.blockwithme.util.Enum40;
+
 /**
  * The possible item general categories.
  *
  * @author monster
  */
 @ParametersAreNonnullByDefault
-public enum ItemCategory {
-    Food, Material, Tool, Weapon, Armor
+public class ItemCategory extends Enum40<ItemCategory> {
+	public static final ItemCategory Food = new ItemCategory();
+	public static final ItemCategory Material = new ItemCategory();
+	public static final ItemCategory Tool = new ItemCategory();
+	public static final ItemCategory Weapon = new ItemCategory();
+	public static final ItemCategory Armor = new ItemCategory();
+
+	/** Default constructor. */
+	protected ItemCategory() {
+		this(ItemCategory.class);
+	}
+
+	/** Constructor for super-classes. */
+	protected ItemCategory(final Class<? extends ItemCategory> cls) {
+		super(cls);
+	}
 }

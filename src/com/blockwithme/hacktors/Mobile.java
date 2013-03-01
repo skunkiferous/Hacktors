@@ -57,7 +57,8 @@ public class Mobile {
 
     /**
      * The current position of the mobile in the world. If the world field of
-     * the position is null, it then means that the mobile is currently "detached".
+     * the position is null, it then means that the mobile is currently
+     * "detached".
      */
     private final Position position = new Position();
 

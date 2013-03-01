@@ -51,21 +51,18 @@ public class MobileControllers {
         if (type == null) {
             throw new IllegalArgumentException("type is null");
         }
-        switch (type) {
-        case Human:
+        if (type == MobileType.Human) {
             return HUMAN;
-
-        case Zombie:
-            return ZOMBIE;
-
-        case Pig:
-            return PIG;
-
-        case Dog:
-            return DOG;
-
-        default:
-            throw new IllegalArgumentException("Unknows MobileType: " + type);
         }
+        if (type == MobileType.Zombie) {
+            return ZOMBIE;
+        }
+        if (type == MobileType.Pig) {
+            return PIG;
+        }
+        if (type == MobileType.Dog) {
+            return DOG;
+        }
+        throw new IllegalArgumentException("Unknows MobileType: " + type);
     }
 }

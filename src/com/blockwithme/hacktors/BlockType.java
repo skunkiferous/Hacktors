@@ -1,40 +1,35 @@
-/*
- * Copyright (C) 2013 Sebastien Diot.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.blockwithme.hacktors;
-
-import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.commons.lang.ArrayUtils;
 
+import com.blockwithme.util.Enum40;
 import com.google.common.base.Preconditions;
 
 /**
- * The possible block types.
+ * The data associated with each BlockType.
  *
  * @author monster
  */
-@ParametersAreNonnullByDefault
-public enum BlockType {
-    Bedrock(0, true), Empty(0, false), Stone(100, true), Earth(30, true), Tree(
-            30, true), ClosedDoor(20, true), OpenDoor(10, false), ClosedChest(
-            20, false), EmptyChest(10, false), StairsUp(200, false), StairsDown(
-            200, false), Anvil(100, false), Trap(20, false);
+public class BlockType extends Enum40<BlockType> {
+	public static final BlockType Bedrock = new BlockType(0, true);
+	public static final BlockType Empty = new BlockType(0, false);
+	public static final BlockType Stone = new BlockType(100, true);
+	public static final BlockType Earth = new BlockType(30, true);
+	public static final BlockType Tree = new BlockType(30, true);
+	public static final BlockType ClosedDoor = new BlockType(20, true);
+	public static final BlockType OpenDoor = new BlockType(10, false);
+	public static final BlockType ClosedChest = new BlockType(20, false);
+	public static final BlockType EmptyChest = new BlockType(10, false);
+	public static final BlockType StairsUp = new BlockType(200, false);
+	public static final BlockType StairsDown = new BlockType(200, false);
+	public static final BlockType Anvil = new BlockType(100, false);
+	public static final BlockType Trap = new BlockType(20, false);
+
+	/** All the values */
+	public static final BlockType[] VALUES = Enum40.values(BlockType.class);
 
     /** AN empty array of block types. */
-    public static final BlockType[] EMPTY = new BlockType[0];
+	public static final BlockType[] EMPTY = new BlockType[0];
 
     /** The life of a block of this type. */
     private final int life;
@@ -51,11 +46,12 @@ public enum BlockType {
      */
     public static BlockType choose() {
         // We never generate bedrock!
-        return values()[Util.RND.nextInt(values().length - 1) + 1];
+        return BlockType.VALUES[Util.RND.nextInt(BlockType.VALUES.length - 1) + 1];
     }
 
     /** Crates a Block type. */
-    private BlockType(final int theLife, final boolean theSolid) {
+    BlockType(final int theLife, final boolean theSolid) {
+    	super(BlockType.class);
         Preconditions.checkArgument(theLife >= 0, "Life must be >= 0");
         life = theLife;
         solid = theSolid;
@@ -66,7 +62,7 @@ public enum BlockType {
         Preconditions.checkNotNull(block);
         Preconditions.checkArgument(block.getType() == this);
         block.setLife((life == -1) ? -1 : life);
-        if (this == ClosedChest) {
+        if (this == BlockType.ClosedChest) {
             final int count = Util.RND.nextInt(2) + 1;
             Item[] content = block.getContent();
             for (int i = 0; i < count; i++) {

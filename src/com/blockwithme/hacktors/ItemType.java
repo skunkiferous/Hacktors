@@ -17,93 +17,127 @@ package com.blockwithme.hacktors;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import com.blockwithme.util.Enum40;
 import com.google.common.base.Preconditions;
 
 /**
  * The possible item types.
  *
- * TODO We need bow and arrow, or at least some projectile.
- * TODO Monster eggs
+ * TODO We need bow and arrow, or at least some projectile. TODO Monster eggs
  *
  * @author monster
  */
 @ParametersAreNonnullByDefault
-public enum ItemType {
-    Apple(1, 5, 1, 1, ItemCategory.Food), Meat(1, 20, 1, 1, ItemCategory.Food), Stick(
-            20, 0, 5, 5, ItemCategory.Material), Bone(30, 0, 7, 7,
-            ItemCategory.Material), PickAxe(100, 0, 15, 30, ItemCategory.Tool), Key(
-            10, 0, 1, 1, ItemCategory.Tool), Sword(100, 0, 30, 15,
-            ItemCategory.Weapon), Block(1, 0, 5, 5, ItemCategory.Material), Iron(
-            100, 0, 10, 10, ItemCategory.Material), Helm(100, 0, 5, 5,
-            ItemCategory.Armor), Gloves(100, 0, 7, 7, ItemCategory.Armor), Boots(
-            100, 0, 7, 7, ItemCategory.Armor), Chestplate(100, 0, 5, 5,
-            ItemCategory.Armor);
+public class ItemType extends Enum40<ItemType> {
+	/**
+	 * serialVersionUID
+	 */
+	private static final long serialVersionUID = 72657509122225609L;
 
-    /** An empty array of Item types. */
-    public static final ItemType[] EMPTY = new ItemType[0];
+	public static final ItemType Apple = new ItemType(1, 5, 1, 1,
+			ItemCategory.Food);
+	public static final ItemType Meat = new ItemType(1, 20, 1, 1,
+			ItemCategory.Food);
+	public static final ItemType Stick = new ItemType(20, 0, 5, 5,
+			ItemCategory.Material);
+	public static final ItemType Bone = new ItemType(30, 0, 7, 7,
+			ItemCategory.Material);
+	public static final ItemType PickAxe = new ItemType(100, 0, 15, 30,
+			ItemCategory.Tool);
+	public static final ItemType Key = new ItemType(10, 0, 1, 1,
+			ItemCategory.Tool);
+	public static final ItemType Sword = new ItemType(100, 0, 30, 15,
+			ItemCategory.Weapon);
+	public static final ItemType Block = new ItemType(1, 0, 5, 5,
+			ItemCategory.Material);
+	public static final ItemType Iron = new ItemType(100, 0, 10, 10,
+			ItemCategory.Material);
+	public static final ItemType Helm = new ItemType(100, 0, 5, 5,
+			ItemCategory.Armor);
+	public static final ItemType Gloves = new ItemType(100, 0, 7, 7,
+			ItemCategory.Armor);
+	public static final ItemType Boots = new ItemType(100, 0, 7, 7,
+			ItemCategory.Armor);
+	public static final ItemType Chestplate = new ItemType(100, 0, 5, 5,
+			ItemCategory.Armor);
 
-    /** The "life" / hit points of an item of this type. */
-    private final int life;
+	/** All Item types. */
+	public static final ItemType[] ALL_SET = Enum40.values(ItemType.class);
 
-    /** The nutritional value of this item. */
-    public final int food;
+	/** An empty array of Item types. */
+	public static final ItemType[] EMPTY = new ItemType[0];
 
-    /** The amount of damage that a hit from this item would do to mobiles. */
-    public final int mobileDamage;
+	/** The "life" / hit points of an item of this type. */
+	private final int life;
 
-    /** The amount of damage that a hit from this item would do to blocks. */
-    public final int blockDamage;
+	/** The nutritional value of this item. */
+	public final int food;
 
-    /** The general category of this item. */
-    public final ItemCategory category;
+	/** The amount of damage that a hit from this item would do to mobiles. */
+	public final int mobileDamage;
 
-    /** Chooses one item type at random. */
-    public static ItemType choose() {
-        return values()[Util.RND.nextInt(values().length)];
-    }
+	/** The amount of damage that a hit from this item would do to blocks. */
+	public final int blockDamage;
 
-    /** Creates an item type. */
-    private ItemType(final int theLife, final int theFood,
-            final int theMobileDamage, final int theBlockDamage,
-            final ItemCategory theCategory) {
-        Preconditions.checkArgument(theLife >= 0, "Life must be >= 0");
-        Preconditions.checkArgument(theFood >= 0, "Food must be >= 0");
-        Preconditions.checkArgument(theMobileDamage >= 0,
-                "MobileDamage must be >= 0");
-        Preconditions.checkArgument(theBlockDamage >= 0,
-                "BlockDamage must be >= 0");
-        life = theLife;
-        food = theFood;
-        mobileDamage = theMobileDamage;
-        blockDamage = theBlockDamage;
-        category = Preconditions.checkNotNull(theCategory);
-    }
+	/** The general category of this item. */
+	public final ItemCategory category;
 
-    /** Finalizes the initialization of an item of this type. */
-    public Item postInit(final Item item) {
-        Preconditions.checkNotNull(item);
-        Preconditions.checkArgument(item.getType() == this);
-        item.setLife((life == 1) ? 1 : Util.RND.nextInt(life) + 1);
-        return item;
-    }
+	/** Chooses one item type at random. */
+	public static ItemType choose() {
+		return ALL_SET[Util.RND.nextInt(ALL_SET.length)];
+	}
 
-    /** Is this some kind of food? */
-    public boolean food() {
-        return (category == ItemCategory.Food);
-    }
+	/** Creates an item type. */
+	protected ItemType(final int theLife, final int theFood,
+			final int theMobileDamage, final int theBlockDamage,
+			final ItemCategory theCategory) {
+		this(ItemType.class, theLife, theFood, theMobileDamage, theBlockDamage,
+				theCategory);
+	}
 
-    /** Is this some kind of armor? */
-    public boolean armor() {
-        return (category == ItemCategory.Armor);
-    }
+	/** Creates an item type. */
+	protected ItemType(final Class<? extends ItemType> type, final int theLife,
+			final int theFood, final int theMobileDamage,
+			final int theBlockDamage, final ItemCategory theCategory) {
+		super(type);
+		Preconditions.checkArgument(theLife >= 0, "Life must be >= 0");
+		Preconditions.checkArgument(theFood >= 0, "Food must be >= 0");
+		Preconditions.checkArgument(theMobileDamage >= 0,
+				"MobileDamage must be >= 0");
+		Preconditions.checkArgument(theBlockDamage >= 0,
+				"BlockDamage must be >= 0");
+		life = theLife;
+		food = theFood;
+		mobileDamage = theMobileDamage;
+		blockDamage = theBlockDamage;
+		category = Preconditions.checkNotNull(theCategory);
+	}
 
-    /** Is this some kind of tool? */
-    public boolean tool() {
-        return (category == ItemCategory.Tool);
-    }
+	/** Finalizes the initialization of an item of this type. */
+	public Item postInit(final Item item) {
+		Preconditions.checkNotNull(item);
+		Preconditions.checkArgument(item.getType() == this);
+		item.setLife((life == 1) ? 1 : Util.RND.nextInt(life) + 1);
+		return item;
+	}
 
-    /** Is this some kind of weapon? */
-    public boolean weapon() {
-        return (category == ItemCategory.Weapon);
-    }
+	/** Is this some kind of food? */
+	public boolean food() {
+		return (category == ItemCategory.Food);
+	}
+
+	/** Is this some kind of armor? */
+	public boolean armor() {
+		return (category == ItemCategory.Armor);
+	}
+
+	/** Is this some kind of tool? */
+	public boolean tool() {
+		return (category == ItemCategory.Tool);
+	}
+
+	/** Is this some kind of weapon? */
+	public boolean weapon() {
+		return (category == ItemCategory.Weapon);
+	}
 }
