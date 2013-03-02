@@ -24,7 +24,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author monster
  */
 @ParametersAreNonnullByDefault
-public class MobileControllers {
+public final class MobileControllers {
 
     /** Human controller. */
     public static final MobileController HUMAN = new MobileController() {
@@ -45,6 +45,11 @@ public class MobileControllers {
     public static final MobileController DOG = new MobileController() {
         // TODO Implement Dog AI
     };
+
+    /** NO creation */
+    private MobileControllers() {
+        // NOP
+    }
 
     /** Returns an appropriate MobileController for this type of Mobile. */
     public static MobileController defaultControllerFor(final MobileType type) {

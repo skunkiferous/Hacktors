@@ -28,18 +28,28 @@ import com.google.common.base.Preconditions;
 @ParametersAreNonnullByDefault
 public class MobileType extends Enum40<MobileType> {
     /**
-	 * serialVersionUID
-	 */
-	private static final long serialVersionUID = 3941589849195137035L;
+     * serialVersionUID
+     */
+    private static final long serialVersionUID = 3941589849195137035L;
 
-	public static final MobileType Pig
-		= new MobileType(20, MobileType.EMPTY, new ItemType[] { ItemType.Apple }, ItemType.Meat, ItemType.Meat, ItemType.Meat);
-    public static final MobileType Human
-    	= new MobileType(100, new MobileType[] { Pig }, new ItemType[] { ItemType.Apple, ItemType.Meat }, null, null, null);
-    public static final MobileType Zombie
-    	= new MobileType(100, new MobileType[] { Human }, ItemType.EMPTY, null, ItemType.Bone, ItemType.Bone);
-    public static final MobileType Dog
-		= new MobileType(50, new MobileType[] { Zombie }, new ItemType[] { ItemType.Meat }, ItemType.Bone);
+    // CHECKSTYLE.OFF: ConstantName
+    /** Pigs */
+    public static final MobileType Pig = new MobileType(20, 1,
+            MobileType.EMPTY, new ItemType[] { ItemType.Apple }, 1,
+            ItemType.Meat, ItemType.Meat, ItemType.Meat);
+    /** Humans (including the player) */
+    public static final MobileType Human = new MobileType(100, 5,
+            new MobileType[] { Pig }, new ItemType[] { ItemType.Apple,
+                    ItemType.Meat }, 2, null, null, null);
+    /** Zombies! */
+    public static final MobileType Zombie = new MobileType(100, 10,
+            new MobileType[] { Human }, ItemType.EMPTY, 1, null, ItemType.Bone,
+            ItemType.Bone);
+    /** Dogs */
+    public static final MobileType Dog = new MobileType(50, 10,
+            new MobileType[] { Zombie }, new ItemType[] { ItemType.Meat }, 3,
+            ItemType.Bone);
+    // CHECKSTYLE.ON: ConstantName
 
     /** All MobileTypes. */
     public static final MobileType[] ALL_SET = Enum40.values(MobileType.class);
@@ -47,27 +57,68 @@ public class MobileType extends Enum40<MobileType> {
     /** Reusable empty array of MobileType. */
     public static final MobileType[] EMPTY = new MobileType[0];
 
+    /** The fastest speed. */
+    public static final int MAX_SPEED = findMaxSpeed();
+
     /** Probability of items being dropped, per item type. */
     private static final float PROBABILITY = 0.2f;
 
     /** Maximum life a mobile can have, when created. */
     private final int life;
 
+    /** Damage per attack. */
+    private final int damage;
+
+    /** Number of actions per cycle. */
+    private final int speed;
+
     /** Types of possible dropping for a mobile to this type. */
     private final ItemType[] droppings;
 
     /** Types of food that this mobile eats. */
-    public final ItemType[] food;
+    private final ItemType[] food;
 
     /** The other mobiles type that it hunts/attacks on sight. */
-    public final MobileType[] hunts;
+    private final MobileType[] hunts;
 
     /** The other mobiles type that it runs away from. */
-    private volatile MobileType[] fears = EMPTY;
+    private MobileType[] fears = EMPTY;
+
+    /** Find the speed of the fastest mobile type. */
+    private static int findMaxSpeed() {
+        int result = 0;
+        for (final MobileType type : ALL_SET) {
+            final int speed = type.speed;
+            if (speed > result) {
+                result = speed;
+            }
+        }
+        return result;
+    }
+
+    /** Damage per attack. */
+    public int getDamage() {
+        return damage;
+    }
+
+    /** Number of actions per cycle. */
+    public int getSpeed() {
+        return speed;
+    }
+
+    /** Types of food that this mobile eats. */
+    public ItemType[] getFood() {
+        return food;
+    }
+
+    /** The other mobiles type that it hunts/attacks on sight. */
+    public MobileType[] getHunts() {
+        return hunts;
+    }
 
     /** The other mobiles type that it runs away from. */
     public MobileType[] fears() {
-    	return fears;
+        return fears;
     }
 
     /** Chooses one mobile type at random. */
@@ -76,26 +127,27 @@ public class MobileType extends Enum40<MobileType> {
     }
 
     /** Constructor */
-    protected MobileType(final int theLife, final MobileType[] theHunts,
-            final ItemType[] theFood, final ItemType... theDroppings) {
-        this(MobileType.class, theLife, theHunts, theFood, theDroppings);
+    protected MobileType(final int theLife, final int theDamage,
+            final MobileType[] theHunts, final ItemType[] theFood,
+            final int theSpeed, final ItemType... theDroppings) {
+        this(MobileType.class, theLife, theDamage, theHunts, theFood, theSpeed,
+                theDroppings);
     }
 
     /** Constructor */
-    protected MobileType(final Class<? extends MobileType> type, final int theLife, final MobileType[] theHunts,
-            final ItemType[] theFood, final ItemType... theDroppings) {
-    	super(type);
+    protected MobileType(final Class<? extends MobileType> type,
+            final int theLife, final int theDamage,
+            final MobileType[] theHunts, final ItemType[] theFood,
+            final int theSpeed, final ItemType... theDroppings) {
+        super(type);
         Preconditions.checkArgument(theLife > 0, "Life must be > 0");
         life = theLife;
+        damage = theDamage;
+        speed = theSpeed;
         hunts = Util.checkNotNull(theHunts);
         food = Util.checkNotNull(theFood);
         // theDroppings can contain null
         droppings = Preconditions.checkNotNull(theDroppings);
-        MobileType[] _fears = new MobileType[0];
-//        if (this == Human) {
-//        	_fears = new MobileType[] { Zombie };
-//        }
-        fears = _fears;
     }
 
     /**
@@ -121,16 +173,16 @@ public class MobileType extends Enum40<MobileType> {
         return mobile;
     }
 
-	/**
-	 * If implemented by the "additional data", the postInit() method will be
-	 * called after the Enum40 values were fully initialized.
-	 */
+    /**
+     * If implemented by the "additional data", the postInit() method will be
+     * called after the Enum40 values were fully initialized.
+     */
     @Override
-	protected void postInit(final MobileType[] allSet) {
-		if (this == Pig) {
-			fears = new MobileType[] { Dog };
-		} else if (this == Human) {
-			fears = new MobileType[] { Zombie };
-		}
-	}
+    protected void postInit(final MobileType[] allSet) {
+        if (this == Pig) {
+            fears = new MobileType[] { Dog };
+        } else if (this == Human) {
+            fears = new MobileType[] { Zombie };
+        }
+    }
 }

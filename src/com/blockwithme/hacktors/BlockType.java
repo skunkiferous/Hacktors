@@ -11,34 +11,70 @@ import com.google.common.base.Preconditions;
  * @author monster
  */
 public class BlockType extends Enum40<BlockType> {
-	public static final BlockType Bedrock = new BlockType(0, true);
-	public static final BlockType Empty = new BlockType(0, false);
-	public static final BlockType Stone = new BlockType(100, true);
-	public static final BlockType Earth = new BlockType(30, true);
-	public static final BlockType Tree = new BlockType(30, true);
-	public static final BlockType ClosedDoor = new BlockType(20, true);
-	public static final BlockType OpenDoor = new BlockType(10, false);
-	public static final BlockType ClosedChest = new BlockType(20, false);
-	public static final BlockType EmptyChest = new BlockType(10, false);
-	public static final BlockType StairsUp = new BlockType(200, false);
-	public static final BlockType StairsDown = new BlockType(200, false);
-	public static final BlockType Anvil = new BlockType(100, false);
-	public static final BlockType Trap = new BlockType(20, false);
+    /** serialVersionUID */
+    private static final long serialVersionUID = 6131338755498127582L;
 
-	/** All the values */
-	public static final BlockType[] VALUES = Enum40.values(BlockType.class);
+    // CHECKSTYLE.OFF: ConstantName
+    /** The Bedrock item type. */
+    public static final BlockType Bedrock = new BlockType(0, true);
+    /** The Empty item type. */
+    public static final BlockType Empty = new BlockType(0, false);
+    /** The Stone item type. */
+    public static final BlockType Stone = new BlockType(100, true);
+    /** The Earth item type. */
+    public static final BlockType Earth = new BlockType(30, true);
+    /** The Tree item type. */
+    public static final BlockType Tree = new BlockType(30, true);
+    /** The ClosedDoor item type. */
+    public static final BlockType ClosedDoor = new BlockType(20, true);
+    /** The OpenDoor item type. */
+    public static final BlockType OpenDoor = new BlockType(10, false);
+    /** The ClosedChest item type. */
+    public static final BlockType ClosedChest = new BlockType(20, false);
+    /** The OpenChest item type. */
+    public static final BlockType OpenChest = new BlockType(10, false);
+    /** The StairsUp item type. */
+    public static final BlockType StairsUp = new BlockType(200, false);
+    /** The StairsDown item type. */
+    public static final BlockType StairsDown = new BlockType(200, false);
+    /** The Anvil item type. */
+    public static final BlockType Anvil = new BlockType(100, false);
+    /** The Trap item type. */
+    public static final BlockType Trap = new BlockType(20, false);
+    // CHECKSTYLE.ON: ConstantName
+
+    /** All the values */
+    public static final BlockType[] VALUES = Enum40.values(BlockType.class);
 
     /** AN empty array of block types. */
-	public static final BlockType[] EMPTY = new BlockType[0];
+    public static final BlockType[] EMPTY = new BlockType[0];
 
-    /** The life of a block of this type. */
+    /** Trap damage */
+    public static final int TRAP_DAMAGE = 10;
+
+    /** The life of a block of this type. 0 means indestructible. */
     private final int life;
 
     /**
      * Are blocks of this type solid?
      * A mobile cannot be located where a solid block is.
      */
-    public final boolean solid;
+    private final boolean solid;
+
+    /**
+     * Are blocks of this type solid?
+     * A mobile cannot be located where a solid block is.
+     */
+    public boolean isSolid() {
+        return solid;
+    }
+
+    /**
+     * Are blocks of this type damageable?
+     */
+    public boolean isDamageable() {
+        return life != 0;
+    }
 
     /**
      * Chooses one block type at random.
@@ -51,7 +87,7 @@ public class BlockType extends Enum40<BlockType> {
 
     /** Crates a Block type. */
     BlockType(final int theLife, final boolean theSolid) {
-    	super(BlockType.class);
+        super(BlockType.class);
         Preconditions.checkArgument(theLife >= 0, "Life must be >= 0");
         life = theLife;
         solid = theSolid;

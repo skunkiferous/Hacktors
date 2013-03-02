@@ -76,4 +76,40 @@ public class Block {
     public static Block create() {
         return create(null);
     }
+
+    /**
+     * This block has been damaged by the give amount.
+     * Returns true if destroyed.
+     * @param damage
+     */
+    public boolean damage(final int amount) {
+        life -= amount;
+        return (life <= 0);
+    }
+
+    /**
+     * This block was destroyed. Returns the items that should be put in it's
+     * place, if any.
+     */
+    public Item[] destroyed() {
+        BlockType itemType = type;
+        if (type == BlockType.OpenDoor) {
+            itemType = BlockType.ClosedDoor;
+        } else if (type == BlockType.Tree) {
+            return new Item[] { new Item(ItemType.Stick, null),
+                    new Item(ItemType.Stick, null),
+                    new Item(ItemType.Apple, null),
+                    new Item(ItemType.Apple, null) };
+        } else if ((type == BlockType.ClosedChest)
+                || (type == BlockType.OpenChest)) {
+            itemType = BlockType.OpenChest;
+            if (content.length > 0) {
+                final Item[] result = new Item[content.length + 1];
+                System.arraycopy(content, 0, result, 0, content.length);
+                result[content.length] = new Item(ItemType.Block, itemType);
+                return result;
+            }
+        }
+        return new Item[] { new Item(ItemType.Block, itemType) };
+    }
 }

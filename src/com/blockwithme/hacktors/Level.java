@@ -49,6 +49,9 @@ public class Level {
     /** All the chunks. */
     private final Chunk[] chunks = new Chunk[SIZE];
 
+    /** Number of mobiles contained. */
+    private int mobileCount;
+
     /** Checks that the index are valid. */
     private void check(final int x, final int y) {
         if ((x < 0) || (x >= X)) {
@@ -65,6 +68,22 @@ public class Level {
     private int index(final int x, final int y) {
         check(x, y);
         return x + X * y;
+    }
+
+    /** Returns the number of mobiles contained. */
+    public int getMobileCount() {
+        return mobileCount;
+    }
+
+    /** Updates the mobile count. */
+    public void updateMobileCount(final int change) {
+        if (change != 0) {
+            mobileCount += change;
+            final World world = position.getWorld();
+            if (world != null) {
+                world.updateMobileCount(change);
+            }
+        }
     }
 
     /** Returns a Chunk. */
@@ -118,6 +137,12 @@ public class Level {
             if (chunk != null) {
                 updateChunkPosition(x, y, chunk);
             }
+            if (before != null) {
+                updateMobileCount(-before.getMobileCount());
+            }
+            if (chunk != null) {
+                updateMobileCount(chunk.getMobileCount());
+            }
         }
     }
 
@@ -128,6 +153,62 @@ public class Level {
                 final Chunk chunk = getChunk(x, y);
                 if (chunk != null) {
                     updateChunkPosition(x, y, chunk);
+                }
+            }
+        }
+    }
+
+    /** Handles missile firing. */
+    public void handleMissile(final Item missile, final int startX,
+            final int startY, final Direction direction) {
+        int range = missile.getType().getRange();
+        Position pos = position.clone();
+        pos.setX(startX);
+        pos.setY(startY);
+        pos.setDirection(direction);
+        Position next = pos.next();
+        final World world = pos.getWorld();
+        final boolean egg = (missile.getType().getCategory() == ItemCategory.Egg);
+        while (world.isValid(next) && (range > 0)) {
+            final int x = next.getX();
+            final int y = next.getY();
+            final Chunk chunk = getOrCreateChunk(x, y);
+            if (chunk.occupied(x, y)) {
+                final Mobile mobile = chunk.getMobile(x, y);
+                if ((mobile != null) && !egg) {
+                    mobile.hitBy(missile);
+                    return;
+                } else {
+                    // Solid block or egg ...
+                    break;
+                }
+            } else {
+                range--;
+                pos = next;
+                next = pos.next();
+            }
+        }
+        // We should not be on a solid block.
+        final Mobile mobile = missile.getType().spawn();
+        final int x = pos.getX();
+        final int y = pos.getY();
+        if (mobile == null) {
+            if (!missile.use()) {
+                final Chunk chunk = getOrCreateChunk(x, y);
+                chunk.addItem(x, y, missile);
+            }
+        } else {
+            final Chunk chunk = getOrCreateChunk(x, y);
+            chunk.setMobile(x, y, mobile);
+        }
+    }
+
+    /** Runs an update cycle. */
+    public void update() {
+        if (mobileCount > 0) {
+            for (final Chunk chunk : chunks) {
+                if (chunk != null) {
+                    chunk.update();
                 }
             }
         }

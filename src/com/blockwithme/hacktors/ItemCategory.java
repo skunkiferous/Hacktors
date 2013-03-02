@@ -26,19 +26,37 @@ import com.blockwithme.util.Enum40;
  */
 @ParametersAreNonnullByDefault
 public class ItemCategory extends Enum40<ItemCategory> {
-	public static final ItemCategory Food = new ItemCategory();
-	public static final ItemCategory Material = new ItemCategory();
-	public static final ItemCategory Tool = new ItemCategory();
-	public static final ItemCategory Weapon = new ItemCategory();
-	public static final ItemCategory Armor = new ItemCategory();
+    /** serialVersionUID */
+    private static final long serialVersionUID = 1258867690868228474L;
 
-	/** Default constructor. */
-	protected ItemCategory() {
-		this(ItemCategory.class);
-	}
+    // CHECKSTYLE.OFF: ConstantName
+    /** The edible items (eggs are a sub-category). */
+    public static final ItemCategory Food = new ItemCategory();
+    /** The eggs items (a sub-category of food). */
+    public static final ItemCategory Egg = new ItemCategory();
+    /** The raw material items. */
+    public static final ItemCategory Material = new ItemCategory();
+    /** The tool items. */
+    public static final ItemCategory Tool = new ItemCategory();
+    /** The weapon items. */
+    public static final ItemCategory Weapon = new ItemCategory();
+    /** The armor items. */
+    public static final ItemCategory Armor = new ItemCategory();
 
-	/** Constructor for super-classes. */
-	protected ItemCategory(final Class<? extends ItemCategory> cls) {
-		super(cls);
-	}
+    // CHECKSTYLE.ON: ConstantName
+
+    /**  Can this be eaten? */
+    public final boolean isEdible() {
+        return (this == Food) || (this == Egg);
+    }
+
+    /** Default constructor. */
+    protected ItemCategory() {
+        this(ItemCategory.class);
+    }
+
+    /** Constructor for super-classes. */
+    protected ItemCategory(final Class<? extends ItemCategory> cls) {
+        super(cls);
+    }
 }

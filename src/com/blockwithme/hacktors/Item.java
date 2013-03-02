@@ -25,8 +25,6 @@ import lombok.Data;
  * Most things of another type, like blocks,
  * can have an "item form".
  *
- * TODO Expend to support mobile type, in addition to block type.
- *
  * @author monster
  */
 @ParametersAreNonnullByDefault
@@ -109,13 +107,14 @@ public class Item {
 
     /**
      * Uses an item once. This consumes one life point. As a result, the item
-     * might get destroyed.
+     * might get destroyed. Returns true if destroyed.
      */
-    public void use() {
+    public boolean use() {
         if (destroyed()) {
             throw new IllegalStateException("Item already destroyed");
         }
         life--;
+        return destroyed();
     }
 
     /** Returns true if this item has been destroyed. */

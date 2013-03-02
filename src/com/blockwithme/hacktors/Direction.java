@@ -25,26 +25,35 @@ import com.blockwithme.util.Enum40;
  * @author monster
  */
 @ParametersAreNonnullByDefault
-public class Direction extends Enum40<Direction>{
-	public static final Direction XUp = new Direction();
-	public static final Direction XDown = new Direction();
-	public static final Direction YUp = new Direction();
-	public static final Direction YDown = new Direction();
+public class Direction extends Enum40<Direction> {
+    /** serialVersionUID */
+    private static final long serialVersionUID = -3925717219015240483L;
 
-	/** All the values */
-	public static final Direction[] VALUES = Enum40.values(Direction.class);
+    // CHECKSTYLE.OFF: ConstantName
+    /** The positive X direction. */
+    public static final Direction XUp = new Direction();
+    /** The negative X direction. */
+    public static final Direction XDown = new Direction();
+    /** The positive Y direction. */
+    public static final Direction YUp = new Direction();
+    /** The negative Y direction. */
+    public static final Direction YDown = new Direction();
+    // CHECKSTYLE.ON: ConstantName
 
-	/** Default constructor. */
+    /** All the values */
+    public static final Direction[] VALUES = Enum40.values(Direction.class);
+
+    /** Default constructor. */
     protected Direction() {
-		this(Direction.class);
-	}
+        this(Direction.class);
+    }
 
-	/** Constructor for subclasses. */
+    /** Constructor for subclasses. */
     protected Direction(final Class<? extends Direction> enumClass) {
-		super(enumClass);
-	}
+        super(enumClass);
+    }
 
-	/** Chooses one direction at random. */
+    /** Chooses one direction at random. */
     public static Direction choose() {
         return VALUES[Util.RND.nextInt(VALUES.length)];
     }

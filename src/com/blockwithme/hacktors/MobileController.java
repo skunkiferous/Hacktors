@@ -26,5 +26,66 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public interface MobileController {
-    // TODO Define interface
+    /** The controller can make the mobile do something. */
+    void act(final Mobile mobile);
+
+    /** Informs the MobileController that it's position was updated. */
+    void updatedPosition(final boolean changedLevel);
+
+    /** Informs the MobileController that it's direction was updated. */
+    void updatedDirection();
+
+    /**
+     * Informs the MobileController that new items have been picked-up.
+     * @param array
+     */
+    void pickedUp(final Item[] array);
+
+    /**
+     * Informs the MobileController that damage was taken.
+     * @param amount The amount of damage.
+     * @param source The source of the damage (normally, a mobile)
+     */
+    void damaged(final int amount, final Object source);
+
+    /**
+     * Informs the MobileController that the mobile died.
+     */
+    void dead();
+
+    /**
+     * Informs the MobileController that the mobile attacked another mobile,
+     * Optionally using some item as weapon.
+     * @param other
+     * @param item
+     * @param killed
+     */
+    void attacked(final Mobile other, final Item item, final boolean killed);
+
+    /**
+     * Informs the MobileController that the mobile attacked a block,
+     * Optionally using some item as weapon.
+     * @param block
+     * @param item
+     * @param destroyed
+     */
+    void attacked(final Block block, final Item item, final boolean destroyed);
+
+    /**
+     * Informs the MobileController that this item has been added to the equipment.
+     * @param theItem
+     */
+    void itemAdded(final Item theItem);
+
+    /**
+     * Informs the MobileController that this item has been removed from the equipment.
+     * @param result
+     */
+    void itemRemoved(final Item theItem);
+
+    /**
+     * Informs the MobileController that this item has been eaten.
+     * @param item
+     */
+    void ate(final Item item);
 }

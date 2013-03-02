@@ -58,6 +58,9 @@ public class Chunk {
     /** All the chunk Items. */
     private final Item[][] items = new Item[SIZE][];
 
+    /** Number of mobiles contained. */
+    private int mobileCount;
+
     /** Checks that the index are valid. */
     private void check(final int x, final int y) {
         if ((x < 0) || (x >= X)) {
@@ -89,6 +92,11 @@ public class Chunk {
         return position;
     }
 
+    /** Returns the number of mobiles contained. */
+    public int getMobileCount() {
+        return mobileCount;
+    }
+
     /** Returns a Block, using local coordinates. It an never be null. */
     public Block getBlockLocal(final int x, final int y) {
         return blocks[index(x, y)];
@@ -105,7 +113,7 @@ public class Chunk {
         if (block == null) {
             blocks[index] = Block.EMPTY;
         } else {
-            if (block.getType().solid && (mobiles[index] != null)) {
+            if (block.getType().isSolid() && (mobiles[index] != null)) {
                 throw new IllegalArgumentException("Coordinate (" + x + "," + y
                         + ") contains a mobile!");
             }
@@ -120,7 +128,7 @@ public class Chunk {
 
     /** Returns true, if the block at the given coordinate is solid, using local coordinates. */
     public boolean solidLocal(final int x, final int y) {
-        return blocks[index(x, y)].getType().solid;
+        return blocks[index(x, y)].getType().isSolid();
     }
 
     /** Returns true, if the block at the given coordinate is solid. */
@@ -138,14 +146,24 @@ public class Chunk {
         return getMobileLocal(x - position.getX(), y - position.getY());
     }
 
+    /** Returns true, if the block at the given coordinate is either solid, or occupied by a mobile, using local coordinates. */
+    public boolean occupiedLocal(final int x, final int y) {
+        final int index = index(x, y);
+        return blocks[index].getType().isSolid() || (mobiles[index] != null);
+    }
+
+    /** Returns true, if the block at the given coordinate is either solid, or occupied by a mobile. */
+    public boolean occupied(final int x, final int y) {
+        return occupiedLocal(x - position.getX(), y - position.getY());
+    }
+
     /** Updates the Mobile position, using local coordinates! */
     private void updateMobilePosition(final int x, final int y,
             final Mobile mobile) {
         final Position pos = mobile.getPosition();
-        final int oldZ = pos.getZ();
         final World world = position.getWorld();
         if (world != null) {
-            final Level level = world.getLevel(oldZ);
+            final Level level = world.getLevel(pos.getZ());
             if (level != null) {
                 final Chunk chunk = level.getChunk(pos.getX(), pos.getY());
                 if (chunk != null) {
@@ -159,9 +177,10 @@ public class Chunk {
         }
         pos.setX(position.getX() + x);
         pos.setY(position.getY() + y);
+        final boolean changedLevel = (position.getZ() != pos.getZ());
         pos.setZ(position.getZ());
         pos.setWorld(world);
-        mobile.updatedPosition();
+        mobile.updatedPosition(changedLevel);
     }
 
     /** Sets a Mobile, using local coordinates. */
@@ -177,11 +196,26 @@ public class Chunk {
                 mobiles[index] = mobile;
                 if (before != null) {
                     before.getPosition().setWorld(null);
-                    before.updatedPosition();
+                    before.updatedPosition(false);
                 }
                 updateMobilePosition(x, y, mobile);
             } else {
                 mobiles[index] = null;
+            }
+        }
+        final int countBefore = mobileCount;
+        if (before != null) {
+            mobileCount--;
+        }
+        if (mobile != null) {
+            mobileCount++;
+        }
+        final int countChange = mobileCount - countBefore;
+        if (countChange != 0) {
+            final World world = position.getWorld();
+            if (world != null) {
+                final Level level = world.getLevel(position.getZ());
+                level.updateMobileCount(countChange);
             }
         }
     }
@@ -243,6 +277,17 @@ public class Chunk {
                 final Mobile mobile = getMobileLocal(x, y);
                 if (mobile != null) {
                     updateMobilePosition(x, y, mobile);
+                }
+            }
+        }
+    }
+
+    /** Runs an update cycle. */
+    public void update() {
+        if (mobileCount > 0) {
+            for (final Mobile mobile : mobiles) {
+                if (mobile != null) {
+                    mobile.getController().act(mobile);
                 }
             }
         }
