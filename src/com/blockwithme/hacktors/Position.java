@@ -81,4 +81,62 @@ public class Position implements Cloneable {
         y = other.y;
         z = other.z;
     }
+
+    /**
+     * Returns the direction pointing toward the other position.
+     * Will return null if both position have same x and y.
+     */
+    public Direction towards(final Position other) {
+        final int dx = x - other.x;
+        final int dy = y - other.y;
+        return towards2(dx, dy);
+    }
+
+    /**
+     * Returns the direction pointing toward the other position.
+     * Will return null if both position have same x and y.
+     */
+    public Direction towards(final int px, final int py) {
+        final int dx = x - px;
+        final int dy = y - py;
+        return towards2(dx, dy);
+    }
+
+    private Direction towards2(final int dx, final int dy) {
+        if ((dx == 0) && (dy == 0)) {
+            return null;
+        }
+        if (Math.abs(dx) > Math.abs(dy)) {
+            return (dx > 0) ? Direction.XDown : Direction.XUp;
+        }
+        return (dy > 0) ? Direction.YDown : Direction.YUp;
+    }
+
+    /** Returns the direction pointing away from the other position. */
+    public Direction awayFrom(final Position other) {
+        final Direction towards = towards(other);
+        // if both position are the same, any direction will do ...
+        return (towards == null) ? Direction.choose() : towards.opposite();
+    }
+
+    /** Returns the distance to another position, taking only x and y in account. */
+    public float distance(final Position other) {
+        final int dx = x - other.x;
+        final int dy = y - other.y;
+        return distance2(dx, dy);
+    }
+
+    /** Returns the distance to another position, taking only x and y in account. */
+    public float distance(final int px, final int py) {
+        final int dx = x - px;
+        final int dy = y - py;
+        return distance2(dx, dy);
+    }
+
+    private float distance2(final int dx, final int dy) {
+        if ((dx == 0) && (dy == 0)) {
+            return 0.0f;
+        }
+        return (float) Math.sqrt(dx * dx + dy * dy);
+    }
 }

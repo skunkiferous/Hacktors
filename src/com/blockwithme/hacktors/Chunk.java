@@ -165,7 +165,7 @@ public class Chunk {
         if (world != null) {
             final Level level = world.getLevel(pos.getZ());
             if (level != null) {
-                final Chunk chunk = level.getChunk(pos.getX(), pos.getY());
+                final Chunk chunk = level.getChunkOf(pos.getX(), pos.getY());
                 if (chunk != null) {
                     final Mobile other = chunk
                             .getMobile(pos.getX(), pos.getY());

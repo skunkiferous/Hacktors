@@ -27,24 +27,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public final class MobileControllers {
 
     /** Human controller. */
-    public static final MobileController HUMAN = new MobileController() {
-        // TODO Implement Human AI
-    };
+    public static final MobileController HUMAN = new GenericMobileController();
 
     /** Zombie controller. */
-    public static final MobileController ZOMBIE = new MobileController() {
-        // TODO Implement Zombie AI
-    };
+    public static final MobileController ZOMBIE = new GenericMobileController();
 
     /** Pig controller. */
-    public static final MobileController PIG = new MobileController() {
-        // TODO Implement Pig AI
-    };
+    public static final MobileController PIG = new GenericMobileController();
 
     /** Dog controller. */
-    public static final MobileController DOG = new MobileController() {
-        // TODO Implement Dog AI
-    };
+    public static final MobileController DOG = new GenericMobileController();
 
     /** NO creation */
     private MobileControllers() {

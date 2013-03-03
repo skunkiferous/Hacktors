@@ -43,6 +43,12 @@ public class Direction extends Enum40<Direction> {
     /** All the values */
     public static final Direction[] VALUES = Enum40.values(Direction.class);
 
+    /** The opposite direction. */
+    private transient Direction opposite;
+
+    /** The normal directions. */
+    private transient Direction[] normal;
+
     /** Default constructor. */
     protected Direction() {
         this(Direction.class);
@@ -53,8 +59,35 @@ public class Direction extends Enum40<Direction> {
         super(enumClass);
     }
 
+    /** The opposite direction. */
+    public Direction opposite() {
+        return opposite;
+    }
+
+    /** The normal directions. */
+    public Direction[] normal() {
+        return normal;
+    }
+
     /** Chooses one direction at random. */
     public static Direction choose() {
         return VALUES[Util.RND.nextInt(VALUES.length)];
+    }
+
+    @Override
+    protected void postInit(final Direction[] allSet) {
+        if (this == XUp) {
+            opposite = XDown;
+            normal = new Direction[] { YUp, YDown };
+        } else if (this == XDown) {
+            opposite = XUp;
+            normal = new Direction[] { YUp, YDown };
+        } else if (this == YUp) {
+            opposite = YDown;
+            normal = new Direction[] { XUp, XDown };
+        } else if (this == YDown) {
+            opposite = YUp;
+            normal = new Direction[] { XUp, XDown };
+        }
     }
 }

@@ -89,7 +89,7 @@ public class World {
         if (!isValid(position)) {
             return null;
         }
-        return getLevel(position.getZ()).getChunk(position.getX(),
+        return getLevel(position.getZ()).getChunkOf(position.getX(),
                 position.getY());
     }
 
@@ -98,7 +98,7 @@ public class World {
         if (!isValid(position)) {
             return null;
         }
-        return getOrCreateLevel(position.getZ()).getOrCreateChunk(
+        return getOrCreateLevel(position.getZ()).getOrCreateChunkOf(
                 position.getX(), position.getY());
     }
 

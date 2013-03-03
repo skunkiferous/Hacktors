@@ -35,66 +35,69 @@ public class ItemType extends Enum40<ItemType> {
      */
     private static final long serialVersionUID = 72657509122225609L;
 
+    /** An empty array of Item types. */
+    public static final ItemType[] EMPTY = new ItemType[0];
+
     // CHECKSTYLE.OFF: ConstantName
     /** Apples! */
     public static final ItemType Apple = new ItemType(1, 5, 1, 1,
-            ItemCategory.Food);
+            ItemCategory.Food, 'a');
     /** Meat (most likely, pig meat) */
     public static final ItemType Meat = new ItemType(1, 20, 1, 1,
-            ItemCategory.Food);
+            ItemCategory.Food, 'm');
 
     /** Egg of a pig */
     public static final ItemType PigEgg = new ItemType(1, 5, 1, 1,
-            ItemCategory.Egg);
+            ItemCategory.Egg, 'p');
     /** Egg of a human */
     public static final ItemType HumanEgg = new ItemType(1, 5, 1, 1,
-            ItemCategory.Egg);
+            ItemCategory.Egg, 'h');
     /** Egg of a zombie */
     public static final ItemType ZombieEgg = new ItemType(1, 5, 1, 1,
-            ItemCategory.Egg);
+            ItemCategory.Egg, 'z');
     /** Egg of a dog */
     public static final ItemType DogEgg = new ItemType(1, 5, 1, 1,
-            ItemCategory.Egg);
+            ItemCategory.Egg, 'd');
 
     /** Sticks */
     public static final ItemType Stick = new ItemType(20, 0, 5, 5,
-            ItemCategory.Material);
+            ItemCategory.Material, 's');
     /** Bones */
     public static final ItemType Bone = new ItemType(30, 0, 7, 7,
-            ItemCategory.Material);
+            ItemCategory.Material, 'b');
     /** Some kind of block */
     public static final ItemType Block = new ItemType(1, 0, 5, 5,
-            ItemCategory.Material);
+            ItemCategory.Material, 'l');
     /** Iron (used to make weapons, ...) */
     public static final ItemType Iron = new ItemType(100, 0, 10, 10,
-            ItemCategory.Material);
+            ItemCategory.Material, 'i');
 
     /** A pick-axe, to break stone. */
     public static final ItemType PickAxe = new ItemType(100, 0, 15, 30,
-            ItemCategory.Tool);
+            ItemCategory.Tool, 'x');
     /** A key, to open doors and chests. */
     public static final ItemType Key = new ItemType(10, 0, 1, 1,
-            ItemCategory.Tool);
+            ItemCategory.Tool, 'k');
 
     /** A sword against zombies. */
     public static final ItemType Sword = new ItemType(100, 0, 30, 15,
-            ItemCategory.Weapon);
+            ItemCategory.Weapon, 's');
     /** A throwing dagger, also against zombies. */
-    public static final ItemType ThrowingDagger = new ItemType(30, 0, 15, 10,
-            ItemCategory.Weapon, 5);
+    public static final ItemType Dagger = new ItemType(30, 0, 15, 10,
+            ItemCategory.Weapon, 5, 't');
 
     /** An armored helm. */
     public static final ItemType Helm = new ItemType(100, 0, 5, 5,
-            ItemCategory.Armor);
+            ItemCategory.Armor, 'e');
     /** An armored pair of gloves. */
     public static final ItemType Gloves = new ItemType(100, 0, 7, 7,
-            ItemCategory.Armor);
+            ItemCategory.Armor, 'g');
     /** An armored pair of boots. */
     public static final ItemType Boots = new ItemType(100, 0, 7, 7,
-            ItemCategory.Armor);
+            ItemCategory.Armor, 'o');
     /** An armor chest plate */
     public static final ItemType Chestplate = new ItemType(100, 0, 5, 5,
-            ItemCategory.Armor);
+            ItemCategory.Armor, 'c');
     // CHECKSTYLE.ON: ConstantName
 
     /** All Item types. */
@@ -103,26 +106,26 @@ public class ItemType extends Enum40<ItemType> {
     /** All craftable Item types. */
     public static final ItemType[] CRAFTABLE = findCraftable();
 
-    /** An empty array of Item types. */
-    public static final ItemType[] EMPTY = new ItemType[0];
-
     /** The "life" / hit points of an item of this type. */
-    private final int life;
+    private final transient int life;
 
     /** The nutritional value of this item. */
-    private final int food;
+    private final transient int food;
 
     /** The missile range of this item, if any. */
-    private final int range;
+    private final transient int range;
 
     /** The amount of damage that a hit from this item would do to mobiles. */
-    private final int mobileDamage;
+    private final transient int mobileDamage;
 
     /** The amount of damage that a hit from this item would do to blocks. */
-    private final int blockDamage;
+    private final transient int blockDamage;
 
     /** The general category of this item. */
-    private final ItemCategory category;
+    private final transient ItemCategory category;
+
+    /** Graphic representation of this item. */
+    private final transient char display;
 
     /** The nutritional value of this item. */
     public int getFood() {
@@ -162,24 +165,25 @@ public class ItemType extends Enum40<ItemType> {
     /** Creates an item type. */
     protected ItemType(final int theLife, final int theFood,
             final int theMobileDamage, final int theBlockDamage,
-            final ItemCategory theCategory) {
+            final ItemCategory theCategory, final char theDisplay) {
         this(ItemType.class, theLife, theFood, theMobileDamage, theBlockDamage,
-                theCategory, 0);
+                theCategory, 0, theDisplay);
     }
 
     /** Creates an item type. */
     protected ItemType(final int theLife, final int theFood,
             final int theMobileDamage, final int theBlockDamage,
-            final ItemCategory theCategory, final int theRange) {
+            final ItemCategory theCategory, final int theRange,
+            final char theDisplay) {
         this(ItemType.class, theLife, theFood, theMobileDamage, theBlockDamage,
-                theCategory, theRange);
+                theCategory, theRange, theDisplay);
     }
 
     /** Creates an item type. */
     protected ItemType(final Class<? extends ItemType> type, final int theLife,
             final int theFood, final int theMobileDamage,
             final int theBlockDamage, final ItemCategory theCategory,
-            final int theRange) {
+            final int theRange, final char theDisplay) {
         super(type);
         Preconditions.checkArgument(theLife >= 0, "Life must be >= 0");
         Preconditions.checkArgument(theFood >= 0, "Food must be >= 0");
@@ -193,6 +197,7 @@ public class ItemType extends Enum40<ItemType> {
         mobileDamage = theMobileDamage;
         blockDamage = theBlockDamage;
         category = Preconditions.checkNotNull(theCategory);
+        display = theDisplay;
     }
 
     /** Finalizes the initialization of an item of this type. */
@@ -225,7 +230,7 @@ public class ItemType extends Enum40<ItemType> {
 
     /** Is this some kind of missile weapon (or an egg)? */
     public boolean missile() {
-        return (this == ThrowingDagger) || (category == ItemCategory.Egg);
+        return (this == Dagger) || (category == ItemCategory.Egg);
     }
 
     /** Is this some kind of craftable item? */
@@ -262,5 +267,12 @@ public class ItemType extends Enum40<ItemType> {
             return Mobile.create(MobileType.Dog);
         }
         return null;
+    }
+
+    /**
+     * @return Graphic representation of this item.
+     */
+    public char getDisplay() {
+        return display;
     }
 }

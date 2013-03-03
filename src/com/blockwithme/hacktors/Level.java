@@ -86,12 +86,17 @@ public class Level {
         }
     }
 
-    /** Returns a Chunk. */
+    /** Returns a Chunk, using chunk position. */
     public Chunk getChunk(final int x, final int y) {
         return chunks[index(x, y)];
     }
 
-    /** Returns a Chunk. Creates it if needed. */
+    /** Returns a Chunk, using global position. */
+    public Chunk getChunkOf(final int x, final int y) {
+        return getChunk(x / Chunk.X, y / Chunk.Y);
+    }
+
+    /** Returns a Chunk, using chunk position. Creates it if needed. */
     public Chunk getOrCreateChunk(final int x, final int y) {
         final int index = index(x, y);
         Chunk result = chunks[index];
@@ -103,6 +108,11 @@ public class Level {
         return result;
     }
 
+    /** Returns a Chunk, using global position. Creates it if needed. */
+    public Chunk getOrCreateChunkOf(final int x, final int y) {
+        return getOrCreateChunk(x / Chunk.X, y / Chunk.Y);
+    }
+
     /** Updates the Chunk position! */
     private void updateChunkPosition(final int x, final int y, final Chunk chunk) {
         final Position pos = chunk.getPosition();
@@ -110,9 +120,9 @@ public class Level {
         if (oldWorld != null) {
             final Level oldLevel = oldWorld.getLevel(pos.getZ());
             if (oldLevel != null) {
-                final Chunk other = oldLevel.getChunk(pos.getX(), pos.getY());
+                final Chunk other = oldLevel.getChunkOf(pos.getX(), pos.getY());
                 if (other == chunk) {
-                    oldLevel.setChunk(pos.getX(), pos.getY(), null);
+                    oldLevel.setChunkOf(pos.getX(), pos.getY(), null);
                 }
             }
         }
@@ -123,7 +133,7 @@ public class Level {
         chunk.updatedPosition();
     }
 
-    /** Sets a block. null is mapped to Empty. */
+    /** Sets a chunk, using chunk position. */
     public void setChunk(final int x, final int y, final Chunk chunk) {
         final int index = index(x, y);
         final Chunk before = chunks[index];
@@ -144,6 +154,11 @@ public class Level {
                 updateMobileCount(chunk.getMobileCount());
             }
         }
+    }
+
+    /** Sets a chunk, using global position. */
+    public void setChunkOf(final int x, final int y, final Chunk chunk) {
+        setChunk(x / Chunk.X, y / Chunk.Y, chunk);
     }
 
     /** Informs the Mobile that it's position was updated. */
@@ -172,7 +187,7 @@ public class Level {
         while (world.isValid(next) && (range > 0)) {
             final int x = next.getX();
             final int y = next.getY();
-            final Chunk chunk = getOrCreateChunk(x, y);
+            final Chunk chunk = getOrCreateChunkOf(x, y);
             if (chunk.occupied(x, y)) {
                 final Mobile mobile = chunk.getMobile(x, y);
                 if ((mobile != null) && !egg) {

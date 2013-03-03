@@ -70,7 +70,7 @@ public class Item {
             it = type;
             bt = blockType;
         }
-        return type.postInit(new Item(it, bt));
+        return it.postInit(new Item(it, bt));
     }
 
     /** Creates a new item, with the given type and no block type. */

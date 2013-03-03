@@ -32,21 +32,24 @@ public class MobileType extends Enum40<MobileType> {
      */
     private static final long serialVersionUID = 3941589849195137035L;
 
+    /** Reusable empty array of MobileType. */
+    public static final MobileType[] EMPTY = new MobileType[0];
+
     // CHECKSTYLE.OFF: ConstantName
     /** Pigs */
-    public static final MobileType Pig = new MobileType(20, 1,
+    public static final MobileType Pig = new MobileType(20, 1, 3, 'P',
             MobileType.EMPTY, new ItemType[] { ItemType.Apple }, 1,
             ItemType.Meat, ItemType.Meat, ItemType.Meat);
     /** Humans (including the player) */
-    public static final MobileType Human = new MobileType(100, 5,
+    public static final MobileType Human = new MobileType(100, 5, 3, 'H',
             new MobileType[] { Pig }, new ItemType[] { ItemType.Apple,
                     ItemType.Meat }, 2, null, null, null);
     /** Zombies! */
-    public static final MobileType Zombie = new MobileType(100, 10,
+    public static final MobileType Zombie = new MobileType(100, 10, 3, 'Z',
             new MobileType[] { Human }, ItemType.EMPTY, 1, null, ItemType.Bone,
             ItemType.Bone);
     /** Dogs */
-    public static final MobileType Dog = new MobileType(50, 10,
+    public static final MobileType Dog = new MobileType(50, 10, 3, 'D',
             new MobileType[] { Zombie }, new ItemType[] { ItemType.Meat }, 3,
             ItemType.Bone);
     // CHECKSTYLE.ON: ConstantName
@@ -54,35 +57,38 @@ public class MobileType extends Enum40<MobileType> {
     /** All MobileTypes. */
     public static final MobileType[] ALL_SET = Enum40.values(MobileType.class);
 
-    /** Reusable empty array of MobileType. */
-    public static final MobileType[] EMPTY = new MobileType[0];
-
     /** The fastest speed. */
     public static final int MAX_SPEED = findMaxSpeed();
 
     /** Probability of items being dropped, per item type. */
     private static final float PROBABILITY = 0.2f;
 
+    /** The display character. */
+    private final transient char display;
+
     /** Maximum life a mobile can have, when created. */
-    private final int life;
+    private final transient int life;
 
     /** Damage per attack. */
-    private final int damage;
+    private final transient int damage;
 
     /** Number of actions per cycle. */
-    private final int speed;
+    private final transient int speed;
+
+    /** How far can the mobile see, normally? */
+    private final transient int perception;
 
     /** Types of possible dropping for a mobile to this type. */
-    private final ItemType[] droppings;
+    private final transient ItemType[] droppings;
 
     /** Types of food that this mobile eats. */
-    private final ItemType[] food;
+    private final transient ItemType[] food;
 
     /** The other mobiles type that it hunts/attacks on sight. */
-    private final MobileType[] hunts;
+    private final transient MobileType[] hunts;
 
     /** The other mobiles type that it runs away from. */
-    private MobileType[] fears = EMPTY;
+    private transient MobileType[] fears = EMPTY;
 
     /** Find the speed of the fastest mobile type. */
     private static int findMaxSpeed() {
@@ -96,14 +102,34 @@ public class MobileType extends Enum40<MobileType> {
         return result;
     }
 
+    /** The display character. */
+    public char getDisplay() {
+        return display;
+    }
+
     /** Damage per attack. */
     public int getDamage() {
         return damage;
     }
 
+    /** Starting life points. */
+    public int getLife() {
+        return life;
+    }
+
     /** Number of actions per cycle. */
     public int getSpeed() {
         return speed;
+    }
+
+    /** How far can the mobile see, normally? */
+    public int getPerception() {
+        return perception;
+    }
+
+    /** Returns true, if this mobile type can use tools and weapons. */
+    public boolean isToolUser() {
+        return (this == MobileType.Human);
     }
 
     /** Types of food that this mobile eats. */
@@ -128,22 +154,26 @@ public class MobileType extends Enum40<MobileType> {
 
     /** Constructor */
     protected MobileType(final int theLife, final int theDamage,
+            final int thePerception, final char theDisplay,
             final MobileType[] theHunts, final ItemType[] theFood,
             final int theSpeed, final ItemType... theDroppings) {
-        this(MobileType.class, theLife, theDamage, theHunts, theFood, theSpeed,
-                theDroppings);
+        this(MobileType.class, theLife, theDamage, thePerception, theDisplay,
+                theHunts, theFood, theSpeed, theDroppings);
     }
 
     /** Constructor */
     protected MobileType(final Class<? extends MobileType> type,
-            final int theLife, final int theDamage,
-            final MobileType[] theHunts, final ItemType[] theFood,
-            final int theSpeed, final ItemType... theDroppings) {
+            final int theLife, final int theDamage, final int thePerception,
+            final char theDisplay, final MobileType[] theHunts,
+            final ItemType[] theFood, final int theSpeed,
+            final ItemType... theDroppings) {
         super(type);
         Preconditions.checkArgument(theLife > 0, "Life must be > 0");
         life = theLife;
         damage = theDamage;
         speed = theSpeed;
+        perception = thePerception;
+        display = theDisplay;
         hunts = Util.checkNotNull(theHunts);
         food = Util.checkNotNull(theFood);
         // theDroppings can contain null
@@ -157,7 +187,7 @@ public class MobileType extends Enum40<MobileType> {
     public Mobile postInit(final Mobile mobile) {
         Preconditions.checkNotNull(mobile);
         Preconditions.checkArgument(mobile.getType() == this);
-        mobile.setLife(1 + (int) (Util.RND.nextGaussian() * life));
+        mobile.setLife(life);
         for (int i = 0; i < droppings.length; i++) {
             final ItemType itemType = droppings[i];
             final Item dropping;

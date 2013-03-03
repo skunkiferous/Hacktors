@@ -15,6 +15,8 @@
  */
 package com.blockwithme.hacktors;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import lombok.Data;
@@ -40,6 +42,12 @@ public class Mobile {
     /** The maximum number of pieces of equipment. */
     public static final int MAX_ITEMS = 10;
 
+    /** ID counter. */
+    private static final AtomicInteger NEXT_ID = new AtomicInteger();
+
+    /** How many cycles it takes for a mobile to forget it was attacked. */
+    private static final int FORGET_TIME = 10;
+
     /** The mobile controller; the "brains" of a mobile. */
     private final MobileController controller;
 
@@ -52,6 +60,9 @@ public class Mobile {
      */
     private int life;
 
+    /** The mobile ID. */
+    private final int id;
+
     /**
      * The current position of the mobile in the world. If the world field of
      * the position is null, it then means that the mobile is currently
@@ -61,6 +72,12 @@ public class Mobile {
 
     /** The equipment (and "droppings") currently carried by the mobile. */
     private Item[] equipment = Item.EMPTY;
+
+    /** The last attacker, if any. */
+    private Mobile lastAttacker;
+
+    /** The last cycle attacked, if any. */
+    private int lastAttacked;
 
     /** Optionally creates a specific mobile, depending on chance. */
     public static Mobile create(final MobileController theController,
@@ -90,6 +107,17 @@ public class Mobile {
         final MobileController controller = MobileControllers
                 .defaultControllerFor(mobileType);
         return create(controller, mobileType);
+    }
+
+    public Mobile(final MobileController theController, final MobileType theType) {
+        controller = theController;
+        type = theType;
+        id = NEXT_ID.incrementAndGet();
+    }
+
+    /** Mobile unique ID. */
+    public int getID() {
+        return id;
     }
 
     /** Returns the mobiles carried items; it's equipment. */
@@ -209,6 +237,11 @@ public class Mobile {
      * @param item */
     public boolean damage(final int amount, final Mobile source, final Item item) {
         // TODO Currently ignoring item...
+        lastAttacker = source;
+        final World world = position.getWorld();
+        if (world != null) {
+            lastAttacked = world.getClock().getCycle();
+        }
         return damageImpl(amount, source);
     }
 
@@ -232,6 +265,21 @@ public class Mobile {
     /** Returns true, if the mobile is now alive. */
     public boolean isAlive() {
         return life > 0;
+    }
+
+    /** Returns the last attacker, if any. */
+    public Mobile getLastAttacker() {
+        if (lastAttacker != null) {
+            final World world = position.getWorld();
+            if (world != null) {
+                final int now = world.getClock().getCycle();
+                if (now - lastAttacked >= FORGET_TIME) {
+                    lastAttacked = 0;
+                    lastAttacker = null;
+                }
+            }
+        }
+        return lastAttacker;
     }
 
     /** Moves the Mobile one position in the current direction, if possible. */
@@ -316,11 +364,13 @@ public class Mobile {
     private void attack(final Mobile other) {
         int best = -1;
         int damage = type.getDamage();
-        for (int i = 0; i < equipment.length; i++) {
-            final int dmg = equipment[i].getType().getMobileDamage();
-            if ((best == -1) || (damage < dmg)) {
-                best = i;
-                damage = dmg;
+        if (type.isToolUser()) {
+            for (int i = 0; i < equipment.length; i++) {
+                final int dmg = equipment[i].getType().getMobileDamage();
+                if ((best == -1) || (damage < dmg)) {
+                    best = i;
+                    damage = dmg;
+                }
             }
         }
         if (best == -1) {
@@ -343,11 +393,13 @@ public class Mobile {
             final Chunk chunk) {
         int best = -1;
         int damage = type.getDamage();
-        for (int i = 0; i < equipment.length; i++) {
-            final int dmg = equipment[i].getType().getBlockDamage();
-            if ((best == -1) || (damage < dmg)) {
-                best = i;
-                damage = dmg;
+        if (type.isToolUser()) {
+            for (int i = 0; i < equipment.length; i++) {
+                final int dmg = equipment[i].getType().getBlockDamage();
+                if ((best == -1) || (damage < dmg)) {
+                    best = i;
+                    damage = dmg;
+                }
             }
         }
         final boolean destroyed = block.damage(damage);
@@ -402,13 +454,15 @@ public class Mobile {
 
     /** Eats something, if possible. */
     public boolean eat() {
-        for (int i = 0; i < equipment.length; i++) {
-            final Item item = equipment[i];
-            if (item.getType().food()) {
-                removeItem(i);
-                life += item.getLife();
-                controller.ate(item);
-                return true;
+        if (life < type.getLife()) {
+            for (int i = 0; i < equipment.length; i++) {
+                final Item item = equipment[i];
+                if (item.getType().food()) {
+                    removeItem(i);
+                    life += item.getLife();
+                    controller.ate(item);
+                    return true;
+                }
             }
         }
         return false;
@@ -664,5 +718,12 @@ public class Mobile {
             }
         }
         return result;
+    }
+
+    /**
+     * @return
+     */
+    public boolean isMindless() {
+        return (type == MobileType.Zombie);
     }
 }
