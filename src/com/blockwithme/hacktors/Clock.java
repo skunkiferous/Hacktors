@@ -32,7 +32,7 @@ public class Clock implements Runnable {
     private final long startrTime = System.currentTimeMillis();
 
     /** The duration of a cycle. */
-    public static final long CYCLE = 1000L;
+    public static final long CYCLE = 100L;
 
     /** The number of nanoseconds in a millisecond. */
     private static final long NANOS_IN_MILLIS = 1000000L;
@@ -81,19 +81,26 @@ public class Clock implements Runnable {
     @Override
     public void run() {
         while (!stop) {
-            final long before = System.nanoTime();
-            world.update();
-            final long after = System.nanoTime();
-            final long duration = (after - before) / NANOS_IN_MILLIS;
-            if (duration < CYCLE) {
-                final long sleep = CYCLE - duration;
-                try {
+            try {
+                final long before = System.nanoTime();
+                world.update();
+                final long after = System.nanoTime();
+                final long duration = (after - before) / NANOS_IN_MILLIS;
+                if (duration < CYCLE) {
+                    final long sleep = CYCLE - duration;
                     Thread.sleep(sleep);
-                } catch (final InterruptedException e) {
-                    stop = true;
                 }
+                cycle.incrementAndGet();
+            } catch (final Exception | Error e) {
+                e.printStackTrace();
+                stop = true;
             }
-            cycle.incrementAndGet();
         }
+        world.visitMobiles(new MobileVisitor() {
+            @Override
+            public void visit(final Mobile mobile) {
+                mobile.getController().stop();
+            }
+        });
     }
 }

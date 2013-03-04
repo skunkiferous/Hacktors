@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions;
  *
  * @author monster
  */
-public class BlockType extends Enum40<BlockType> {
+public class BlockType extends Enum40<BlockType> implements Displayable {
     /** serialVersionUID */
     private static final long serialVersionUID = 6131338755498127582L;
 
@@ -34,31 +34,44 @@ public class BlockType extends Enum40<BlockType> {
 
     // CHECKSTYLE.OFF: ConstantName
     /** The Bedrock item type. */
-    public static final BlockType Bedrock = new BlockType(0, true, '!');
+    public static final BlockType Bedrock = new BlockType(0, true, '!',
+            Color.RED);
     /** The Empty item type. */
-    public static final BlockType Empty = new BlockType(0, false, ' ');
+    public static final BlockType Empty = new BlockType(0, false, ' ',
+            Color.WHITE);
     /** The Stone item type. */
-    public static final BlockType Stone = new BlockType(100, true, '$');
+    public static final BlockType Stone = new BlockType(100, true, '$',
+            Color.YELLOW);
     /** The Earth item type. */
-    public static final BlockType Earth = new BlockType(30, true, '§');
+    public static final BlockType Earth = new BlockType(30, true, '&',
+            Color.MAGENTA);
     /** The Tree item type. */
-    public static final BlockType Tree = new BlockType(30, true, '#');
+    public static final BlockType Tree = new BlockType(30, true, '#',
+            Color.GREEN);
     /** The ClosedDoor item type. */
-    public static final BlockType ClosedDoor = new BlockType(20, true, '+');
+    public static final BlockType ClosedDoor = new BlockType(20, true, '+',
+            Color.BLUE);
     /** The OpenDoor item type. */
-    public static final BlockType OpenDoor = new BlockType(10, false, '-');
+    public static final BlockType OpenDoor = new BlockType(10, false, '-',
+            Color.YELLOW);
     /** The ClosedChest item type. */
-    public static final BlockType ClosedChest = new BlockType(20, false, '[');
+    public static final BlockType ClosedChest = new BlockType(20, false, '[',
+            Color.CYAN);
     /** The OpenChest item type. */
-    public static final BlockType OpenChest = new BlockType(10, false, ']');
+    public static final BlockType OpenChest = new BlockType(10, false, ']',
+            Color.MAGENTA);
     /** The StairsUp item type. */
-    public static final BlockType StairsUp = new BlockType(200, false, '<');
+    public static final BlockType StairsUp = new BlockType(200, false, '<',
+            Color.RED);
     /** The StairsDown item type. */
-    public static final BlockType StairsDown = new BlockType(200, false, '>');
+    public static final BlockType StairsDown = new BlockType(200, false, '>',
+            Color.RED);
     /** The Anvil item type. */
-    public static final BlockType Anvil = new BlockType(100, false, '=');
+    public static final BlockType Anvil = new BlockType(100, false, '=',
+            Color.BLUE);
     /** The Trap item type. */
-    public static final BlockType Trap = new BlockType(20, false, '^');
+    public static final BlockType Trap = new BlockType(20, false, '^',
+            Color.YELLOW);
     // CHECKSTYLE.ON: ConstantName
 
     /** All the values */
@@ -78,6 +91,9 @@ public class BlockType extends Enum40<BlockType> {
 
     /** Graphic representation of this block. */
     private final transient char display;
+
+    /** The display character color. */
+    private final transient Color color;
 
     /**
      * Are blocks of this type solid?
@@ -100,16 +116,18 @@ public class BlockType extends Enum40<BlockType> {
      */
     public static BlockType choose() {
         // We never generate bedrock!
-        return BlockType.VALUES[Util.RND.nextInt(BlockType.VALUES.length - 1) + 1];
+        return BlockType.VALUES[Util.nextInt(BlockType.VALUES.length - 1) + 1];
     }
 
     /** Crates a Block type. */
-    BlockType(final int theLife, final boolean theSolid, final char theDisplay) {
+    BlockType(final int theLife, final boolean theSolid, final char theDisplay,
+            final Color theColor) {
         super(BlockType.class);
         Preconditions.checkArgument(theLife >= 0, "Life must be >= 0");
         life = theLife;
         solid = theSolid;
         display = theDisplay;
+        color = Preconditions.checkNotNull(theColor);
     }
 
     /** Finalizes the initialization of an block of this type. */
@@ -118,7 +136,7 @@ public class BlockType extends Enum40<BlockType> {
         Preconditions.checkArgument(block.getType() == this);
         block.setLife((life == -1) ? -1 : life);
         if (this == BlockType.ClosedChest) {
-            final int count = Util.RND.nextInt(2) + 1;
+            final int count = Util.nextInt(2) + 1;
             Item[] content = block.getContent();
             for (int i = 0; i < count; i++) {
                 content = (Item[]) ArrayUtils.add(content, Item.create());
@@ -129,7 +147,14 @@ public class BlockType extends Enum40<BlockType> {
     }
 
     /** Graphic representation of this block. */
+    @Override
     public char getDisplay() {
         return display;
+    }
+
+    /** Returns the display character color. */
+    @Override
+    public Color getColor() {
+        return color;
     }
 }

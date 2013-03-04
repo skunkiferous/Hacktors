@@ -106,4 +106,12 @@ public abstract class AbstractMobileController implements MobileController {
     public void ate(final Item item) {
         // NOP
     }
+
+    /* (non-Javadoc)
+     * @see com.blockwithme.hacktors.MobileController#stop()
+     */
+    @Override
+    public void stop() {
+        // NOP
+    }
 }

@@ -49,6 +49,12 @@ public class GenericMobileController extends AbstractMobileController {
     /** Mobiles are hungry if they have less then that much life. */
     private static final float HUNGRY = 0.75f;
 
+    /** The mobile */
+    private Mobile mobile;
+
+    /** Did the last move succeed? */
+    private boolean lastMoveFailed;
+
     /** Returns ture, if stuff is a suitable food. */
     private static boolean food(final ItemType[] foodTypes, final Item stuff) {
         final ItemType type = stuff.getType();
@@ -61,11 +67,11 @@ public class GenericMobileController extends AbstractMobileController {
     }
 
     /* (non-Javadoc)
-     * @see com.blockwithme.hacktors.MobileController#act(com.blockwithme.hacktors.Mobile)
+     * @see com.blockwithme.hacktors.MobileController#act()
      */
     @Override
-    public void act(final Mobile mobile) {
-        final World world = mobile.getPosition().getWorld();
+    public void act() {
+        final World world = mobile.getWorld();
         if (world == null) {
             return;
         }
@@ -94,7 +100,7 @@ public class GenericMobileController extends AbstractMobileController {
         final float scaredLimit = hasWeapon ? MIN_LIFE_ARMED : MIN_LIFE;
         final boolean scared = !mindless && (attacker != null)
                 && (life <= (int) (maxLife * scaredLimit));
-        final Position pos = mobile.getPosition();
+        final Position pos = mobile.getPositionClone();
         final int perception = type.getPerception();
         final int x = pos.getX();
         final int y = pos.getY();
@@ -104,6 +110,7 @@ public class GenericMobileController extends AbstractMobileController {
         final int yMax = y + perception;
         final Level level = world.getOrCreateLevel(pos.getZ());
         final List<Mobile> ennemies = new ArrayList<>();
+        final List<Mobile> pray = new ArrayList<>();
         final List<ItemPos> foods = new ArrayList<>();
         final List<ItemPos> wants = new ArrayList<>();
         for (int px = xMin; px <= xMax; px++) {
@@ -112,15 +119,24 @@ public class GenericMobileController extends AbstractMobileController {
                 pos.setY(py);
                 if (world.isValid(pos)) {
                     final boolean isMe = (px == x) && (py == y);
-                    final Chunk chunk = level.getChunkOf(px, py);
+                    final Chunk chunk = level.getOrCreateChunkOf(px, py);
                     final Mobile mob = isMe ? null : chunk.getMobile(px, py);
                     if (mob != null) {
                         if (mob == attacker) {
-                            ennemies.add(mob);
+                            if (scared) {
+                                ennemies.add(mob);
+                            } else {
+                                pray.add(mob);
+                            }
                         } else {
                             for (final MobileType scary : type.fears()) {
                                 if (mob.getType() == scary) {
                                     ennemies.add(mob);
+                                }
+                            }
+                            for (final MobileType tasty : type.getHunts()) {
+                                if (mob.getType() == tasty) {
+                                    pray.add(mob);
                                 }
                             }
                         }
@@ -133,28 +149,26 @@ public class GenericMobileController extends AbstractMobileController {
                             wants.add(new ItemPos(item, px, py));
                         }
                     }
-                    //final Block block = chunk.getBlock(px, py);
                 }
             }
         }
-        act(mobile, hungry, hasFood, hasWeapon, scared, ennemies, foods, wants);
+        act(hungry, hasFood, hasWeapon, scared, ennemies, pray, foods, wants);
     }
 
     private static boolean free(final World world, final Position pos) {
-        final Level level = world.getOrCreateLevel(pos.getZ());
         boolean ok = false;
         if (world.isValid(pos)) {
             final int x = pos.getX();
-            final int y = pos.getX();
-            final Chunk chunk = level.getChunkOf(x, y);
+            final int y = pos.getY();
+            final Level level = world.getOrCreateLevel(pos.getZ());
+            final Chunk chunk = level.getOrCreateChunkOf(x, y);
             ok = !chunk.occupied(x, y);
         }
         return ok;
     }
 
-    protected boolean tryMove(final World world, final Mobile mobile,
-            Direction direction) {
-        final Position pos = mobile.getPosition();
+    protected boolean tryMove(final World world, Direction direction) {
+        final Position pos = mobile.getPositionClone();
         pos.setDirection(direction);
         Position next = pos.next();
         boolean move = true;
@@ -170,43 +184,49 @@ public class GenericMobileController extends AbstractMobileController {
                 if (!free(world, next)) {
                     // Stuck on all sides!
                     move = false;
+                    lastMoveFailed = true;
                 }
             }
         }
         if (move) {
+            mobile.setDirection(direction);
             if (mobile.move()) {
+                lastMoveFailed = false;
                 return true;
             }
+            lastMoveFailed = true;
         }
         return false;
     }
 
-    protected void act(final Mobile mobile, final boolean hungry,
-            final boolean hasFood, final boolean hasWeapon,
-            final boolean scared, final List<Mobile> ennemies,
+    protected void act(final boolean hungry, final boolean hasFood,
+            final boolean hasWeapon, final boolean scared,
+            final List<Mobile> ennemies, final List<Mobile> prays,
             final List<ItemPos> foods, final List<ItemPos> wants) {
-        final World world = mobile.getPosition().getWorld();
-        final Position pos = mobile.getPosition();
+        final Position pos = mobile.getPositionClone();
+        final World world = pos.getWorld();
         Direction direction = pos.getDirection();
+        boolean decided = false;
         if (scared && !ennemies.isEmpty()) {
             Mobile nearest = null;
             float distance = -1.0f;
 
             for (final Mobile ennemy : ennemies) {
-                final float dst = pos.distance(ennemy.getPosition());
+                final float dst = pos.distance(ennemy.getPositionClone());
                 if (dst > distance) {
                     distance = dst;
                     nearest = ennemy;
                 }
             }
 
-            direction = pos.awayFrom(nearest.getPosition());
-            if (tryMove(world, mobile, direction)) {
+            decided = true;
+            direction = pos.awayFrom(nearest.getPositionClone());
+            if (tryMove(world, direction)) {
                 return;
             }
             // Can't run! Maybe backtrack?
             direction = direction.opposite();
-            if (tryMove(world, mobile, direction)) {
+            if (tryMove(world, direction)) {
                 return;
             }
             // OK. We're in trouble!
@@ -218,12 +238,27 @@ public class GenericMobileController extends AbstractMobileController {
                 return;
             }
         }
+        if (!prays.isEmpty()) {
+            for (final Mobile pray : prays) {
+                final Position epos = pray.getPositionClone();
+                if (pos.distance(epos) < 1.05f) {
+                    decided = true;
+                    direction = pos.towards(epos);
+                    mobile.setDirection(direction);
+                    if (mobile.attack()) {
+                        return;
+                    }
+                    // We really should not get here ...
+                }
+            }
+        }
         if (!ennemies.isEmpty()) {
             for (final Mobile ennemy : ennemies) {
-                final Position epos = ennemy.getPosition();
+                final Position epos = ennemy.getPositionClone();
                 if (pos.distance(epos) < 1.05f) {
+                    decided = true;
                     direction = pos.towards(epos);
-                    pos.setDirection(direction);
+                    mobile.setDirection(direction);
                     if (mobile.attack()) {
                         return;
                     }
@@ -254,11 +289,34 @@ public class GenericMobileController extends AbstractMobileController {
                 nearest = ip;
             }
         }
-        if (distance < 0.05f) {
-            mobile.pickup();
+        if ((distance < 0.05f) && (distance >= 0.0f)) {
+            if (mobile.pickup()) {
+                return;
+            }
         } else if (nearest != null) {
+            decided = true;
             direction = pos.towards(nearest.x, nearest.y);
         }
-        tryMove(world, mobile, direction);
+        if (!decided) {
+            if (Util.nextBoolean()) {
+                if (lastMoveFailed || (Util.nextFloat() <= 0.333f)) {
+                    final Direction before = direction;
+                    while (before == direction) {
+                        direction = Direction.choose();
+                    }
+                }
+                tryMove(world, direction);
+            }
+        } else {
+            tryMove(world, direction);
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see com.blockwithme.hacktors.MobileController#setMobile(com.blockwithme.hacktors.Mobile)
+     */
+    @Override
+    public void setMobile(final Mobile theMobile) {
+        mobile = theMobile;
     }
 }

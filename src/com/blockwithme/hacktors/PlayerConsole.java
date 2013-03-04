@@ -15,9 +15,14 @@
  */
 package com.blockwithme.hacktors;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+
+import com.googlecode.lanterna.TerminalFacade;
+import com.googlecode.lanterna.input.Key;
+import com.googlecode.lanterna.terminal.Terminal;
 
 /**
  * Interface between the game and a player.
@@ -26,33 +31,76 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public class PlayerConsole {
+
+    /** Maps our colors for the terminal colors. */
+    private static final Map<Color, Terminal.Color> COLOR = new HashMap<>();
+
+    static {
+        for (final Color color : Color.values()) {
+            final String name = color.name();
+            final Terminal.Color mapping = Terminal.Color.valueOf(name);
+            COLOR.put(color, mapping);
+        }
+    }
+
+    /** The Terminal. */
+    private final Terminal terminal;
+
+    /** Constructor */
+    public PlayerConsole() {
+        if (System.getProperty("os.name", "").toLowerCase().contains("windows")) {
+            terminal = TerminalFacade.createSwingTerminal();
+        } else {
+            terminal = TerminalFacade.createTerminal();
+        }
+        terminal.enterPrivateMode();
+    }
+
+    /** Terminates the player console. */
+    public void exit() {
+        terminal.exitPrivateMode();
+    }
+
     /**
      * Sends output to the player.
      * Note that no new-line is added to the text.
      */
-    public void output(final String text) {
-        System.out.print(text);
+    public void output(final String text, final boolean clearScreen) {
+        if (text.isEmpty()) {
+            return;
+        }
+        if (clearScreen) {
+            terminal.clearScreen();
+        }
+        int x = 0;
+        int y = 0;
+        terminal.moveCursor(x, y);
+        final char[] chars = text.toCharArray();
+        final Color[] colors = Color.values();
+        for (int i = 0; i < chars.length; i++) {
+            final char raw = chars[i];
+            // Default is white
+            final int color = raw >> 8;
+            final char c = (char) (raw & 0xFF);
+            if (c == '\n') {
+                x = 0;
+                y++;
+                terminal.moveCursor(x, y);
+            } else {
+                terminal.applyForegroundColor(COLOR.get(colors[color]));
+                terminal.putCharacter(c);
+                x++;
+            }
+        }
+        terminal.flush();
     }
 
     /** Reads input form the user, if any. */
     public String input() {
-        try {
-            final int available = System.in.available();
-            if (available > 0) {
-                final byte[] in = new byte[available];
-                final int read = System.in.read(in);
-                final String str = new String(in);
-                if (read == available) {
-                    return str;
-                }
-                if (read > 0) {
-                    return str.substring(0, read);
-                }
-            }
-        } catch (final IOException e) {
-            e.printStackTrace();
-            System.out.println();
+        final Key key = terminal.readInput();
+        if (key == null) {
+            return "";
         }
-        return "";
+        return String.valueOf(key.getCharacter());
     }
 }

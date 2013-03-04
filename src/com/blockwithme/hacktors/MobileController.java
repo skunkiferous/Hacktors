@@ -26,8 +26,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 public interface MobileController {
+    /** Avatar setter */
+    void setMobile(final Mobile mobile);
+
     /** The controller can make the mobile do something. */
-    void act(final Mobile mobile);
+    void act();
 
     /** Informs the MobileController that it's position was updated. */
     void updatedPosition(final boolean changedLevel);
@@ -88,4 +91,9 @@ public interface MobileController {
      * @param item
      */
     void ate(final Item item);
+
+    /**
+     * Informs the MobileController that the game is stopping.
+     */
+    void stop();
 }

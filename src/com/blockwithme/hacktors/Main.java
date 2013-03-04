@@ -23,17 +23,23 @@ package com.blockwithme.hacktors;
 public class Main {
     /** Starts the game. */
     public static void main(final String[] args) {
-        final World world = new World();
         final PlayerConsole console = new PlayerConsole();
+        final World world = new World();
         final PlayerMobileController controller = new PlayerMobileController(
                 console);
-        final Mobile avatar = new Mobile(controller, MobileType.Human);
+        final Mobile avatar = Mobile.create(controller, MobileType.Human);
+        avatar.addItem(Item.create(ItemType.Sword));
+        avatar.addItem(Item.create(ItemType.DogEgg));
+        avatar.addItem(Item.create(ItemType.Meat));
+        avatar.addItem(Item.create(ItemType.Iron));
         final Level level = world.getOrCreateLevel(0);
         final int x = World.X / 2;
         final int y = World.Y / 2;
         final Chunk chunk = level.getOrCreateChunkOf(x, y);
         chunk.setBlock(x, y, Block.EMPTY);
         chunk.setMobile(x, y, avatar);
+        controller.setMobile(avatar);
         world.getClock().start();
+        System.exit(0);
     }
 }

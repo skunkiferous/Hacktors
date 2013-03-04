@@ -34,7 +34,35 @@ public final class Util {
     }
 
     /** Shared random number generator. */
-    public static final Random RND = new Random();
+    private static final Random RND = new Random();
+
+    /** Returns a random float. */
+    public static float nextFloat() {
+        final float result = RND.nextFloat();
+        //        System.out.println("nextFloat(): " + result);
+        return result;
+    }
+
+    /** Returns a random boolean. */
+    public static boolean nextBoolean() {
+        final boolean result = RND.nextBoolean();
+        //        System.out.println("nextBoolean(): " + result);
+        return result;
+    }
+
+    /** Returns a random int. */
+    public static int nextInt() {
+        final int result = RND.nextInt();
+        //        System.out.println("nextInt(): " + result);
+        return result;
+    }
+
+    /** Returns a random int in [0,maxExclusive[. */
+    public static int nextInt(final int maxExclusive) {
+        final int result = RND.nextInt(maxExclusive);
+        //        System.out.println("nextInt(" + maxExclusive + "): " + result);
+        return result;
+    }
 
     /** Checks that the given array is neither null, nor contains null. */
     public static <E> E[] checkNotNull(final E[] array) {

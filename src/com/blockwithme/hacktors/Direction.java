@@ -31,17 +31,20 @@ public class Direction extends Enum40<Direction> {
 
     // CHECKSTYLE.OFF: ConstantName
     /** The positive X direction. */
-    public static final Direction XUp = new Direction();
+    public static final Direction XDown = new Direction('v');
     /** The negative X direction. */
-    public static final Direction XDown = new Direction();
+    public static final Direction XUp = new Direction('^');
     /** The positive Y direction. */
-    public static final Direction YUp = new Direction();
+    public static final Direction YUp = new Direction('>');
     /** The negative Y direction. */
-    public static final Direction YDown = new Direction();
+    public static final Direction YDown = new Direction('<');
     // CHECKSTYLE.ON: ConstantName
 
     /** All the values */
     public static final Direction[] VALUES = Enum40.values(Direction.class);
+
+    /** Graphic representation of this Direction. */
+    private final transient char display;
 
     /** The opposite direction. */
     private transient Direction opposite;
@@ -50,13 +53,22 @@ public class Direction extends Enum40<Direction> {
     private transient Direction[] normal;
 
     /** Default constructor. */
-    protected Direction() {
-        this(Direction.class);
+    protected Direction(final char theDisplay) {
+        this(Direction.class, theDisplay);
     }
 
     /** Constructor for subclasses. */
-    protected Direction(final Class<? extends Direction> enumClass) {
+    protected Direction(final Class<? extends Direction> enumClass,
+            final char theDisplay) {
         super(enumClass);
+        display = theDisplay;
+    }
+
+    /**
+     * @return Graphic representation of this item.
+     */
+    public char getDisplay() {
+        return display;
     }
 
     /** The opposite direction. */
@@ -71,23 +83,23 @@ public class Direction extends Enum40<Direction> {
 
     /** Chooses one direction at random. */
     public static Direction choose() {
-        return VALUES[Util.RND.nextInt(VALUES.length)];
+        return VALUES[Util.nextInt(VALUES.length)];
     }
 
     @Override
     protected void postInit(final Direction[] allSet) {
-        if (this == XUp) {
-            opposite = XDown;
-            normal = new Direction[] { YUp, YDown };
-        } else if (this == XDown) {
+        if (this == XDown) {
             opposite = XUp;
+            normal = new Direction[] { YUp, YDown };
+        } else if (this == XUp) {
+            opposite = XDown;
             normal = new Direction[] { YUp, YDown };
         } else if (this == YUp) {
             opposite = YDown;
-            normal = new Direction[] { XUp, XDown };
+            normal = new Direction[] { XDown, XUp };
         } else if (this == YDown) {
             opposite = YUp;
-            normal = new Direction[] { XUp, XDown };
+            normal = new Direction[] { XDown, XUp };
         }
     }
 }

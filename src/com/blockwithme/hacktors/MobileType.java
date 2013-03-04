@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
  * @author monster
  */
 @ParametersAreNonnullByDefault
-public class MobileType extends Enum40<MobileType> {
+public class MobileType extends Enum40<MobileType> implements Displayable {
     /**
      * serialVersionUID
      */
@@ -38,20 +38,20 @@ public class MobileType extends Enum40<MobileType> {
     // CHECKSTYLE.OFF: ConstantName
     /** Pigs */
     public static final MobileType Pig = new MobileType(20, 1, 3, 'P',
-            MobileType.EMPTY, new ItemType[] { ItemType.Apple }, 1,
-            ItemType.Meat, ItemType.Meat, ItemType.Meat);
+            Color.MAGENTA, MobileType.EMPTY, new ItemType[] { ItemType.Apple },
+            1, ItemType.Meat, ItemType.Meat, ItemType.Meat);
     /** Humans (including the player) */
-    public static final MobileType Human = new MobileType(100, 5, 3, 'H',
-            new MobileType[] { Pig }, new ItemType[] { ItemType.Apple,
-                    ItemType.Meat }, 2, null, null, null);
+    public static final MobileType Human = new MobileType(100, 5, 4, 'H',
+            Color.WHITE, new MobileType[] { Pig }, new ItemType[] {
+                    ItemType.Apple, ItemType.Meat }, 8, null, null, null);
     /** Zombies! */
     public static final MobileType Zombie = new MobileType(100, 10, 3, 'Z',
-            new MobileType[] { Human }, ItemType.EMPTY, 1, null, ItemType.Bone,
-            ItemType.Bone);
+            Color.GREEN, new MobileType[] { Human }, ItemType.EMPTY, 1, null,
+            ItemType.Bone, ItemType.Bone);
     /** Dogs */
-    public static final MobileType Dog = new MobileType(50, 10, 3, 'D',
-            new MobileType[] { Zombie }, new ItemType[] { ItemType.Meat }, 3,
-            ItemType.Bone);
+    public static final MobileType Dog = new MobileType(50, 10, 4, 'D',
+            Color.YELLOW, new MobileType[] { Zombie },
+            new ItemType[] { ItemType.Meat }, 5, ItemType.Bone);
     // CHECKSTYLE.ON: ConstantName
 
     /** All MobileTypes. */
@@ -65,6 +65,9 @@ public class MobileType extends Enum40<MobileType> {
 
     /** The display character. */
     private final transient char display;
+
+    /** The display character color. */
+    private final transient Color color;
 
     /** Maximum life a mobile can have, when created. */
     private final transient int life;
@@ -103,8 +106,15 @@ public class MobileType extends Enum40<MobileType> {
     }
 
     /** The display character. */
+    @Override
     public char getDisplay() {
         return display;
+    }
+
+    /** Returns the display character color. */
+    @Override
+    public Color getColor() {
+        return color;
     }
 
     /** Damage per attack. */
@@ -149,24 +159,25 @@ public class MobileType extends Enum40<MobileType> {
 
     /** Chooses one mobile type at random. */
     public static MobileType choose() {
-        return ALL_SET[Util.RND.nextInt(ALL_SET.length)];
+        return ALL_SET[Util.nextInt(ALL_SET.length)];
     }
 
     /** Constructor */
     protected MobileType(final int theLife, final int theDamage,
             final int thePerception, final char theDisplay,
-            final MobileType[] theHunts, final ItemType[] theFood,
-            final int theSpeed, final ItemType... theDroppings) {
+            final Color theColor, final MobileType[] theHunts,
+            final ItemType[] theFood, final int theSpeed,
+            final ItemType... theDroppings) {
         this(MobileType.class, theLife, theDamage, thePerception, theDisplay,
-                theHunts, theFood, theSpeed, theDroppings);
+                theColor, theHunts, theFood, theSpeed, theDroppings);
     }
 
     /** Constructor */
     protected MobileType(final Class<? extends MobileType> type,
             final int theLife, final int theDamage, final int thePerception,
-            final char theDisplay, final MobileType[] theHunts,
-            final ItemType[] theFood, final int theSpeed,
-            final ItemType... theDroppings) {
+            final char theDisplay, final Color theColor,
+            final MobileType[] theHunts, final ItemType[] theFood,
+            final int theSpeed, final ItemType... theDroppings) {
         super(type);
         Preconditions.checkArgument(theLife > 0, "Life must be > 0");
         life = theLife;
@@ -174,6 +185,7 @@ public class MobileType extends Enum40<MobileType> {
         speed = theSpeed;
         perception = thePerception;
         display = theDisplay;
+        color = Preconditions.checkNotNull(theColor);
         hunts = Util.checkNotNull(theHunts);
         food = Util.checkNotNull(theFood);
         // theDroppings can contain null

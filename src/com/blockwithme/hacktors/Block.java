@@ -52,10 +52,10 @@ public class Block {
      * chosen at random.
      */
     public static Block create(final BlockType type, final float probability) {
-        if (Util.RND.nextFloat() < probability) {
+        if (Util.nextFloat() < probability) {
             return null;
         }
-        return type.postInit(new Block(type));
+        return create(type);
     }
 
     /**
@@ -96,20 +96,19 @@ public class Block {
         if (type == BlockType.OpenDoor) {
             itemType = BlockType.ClosedDoor;
         } else if (type == BlockType.Tree) {
-            return new Item[] { new Item(ItemType.Stick, null),
-                    new Item(ItemType.Stick, null),
-                    new Item(ItemType.Apple, null),
-                    new Item(ItemType.Apple, null) };
+            return new Item[] { Item.create(ItemType.Stick),
+                    Item.create(ItemType.Stick), Item.create(ItemType.Apple),
+                    Item.create(ItemType.Apple) };
         } else if ((type == BlockType.ClosedChest)
                 || (type == BlockType.OpenChest)) {
             itemType = BlockType.OpenChest;
             if (content.length > 0) {
                 final Item[] result = new Item[content.length + 1];
                 System.arraycopy(content, 0, result, 0, content.length);
-                result[content.length] = new Item(ItemType.Block, itemType);
+                result[content.length] = Item.create(ItemType.Block, itemType);
                 return result;
             }
         }
-        return new Item[] { new Item(ItemType.Block, itemType) };
+        return new Item[] { Item.create(ItemType.Block, itemType) };
     }
 }

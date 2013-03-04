@@ -160,27 +160,27 @@ public class Chunk {
     /** Updates the Mobile position, using local coordinates! */
     private void updateMobilePosition(final int x, final int y,
             final Mobile mobile) {
-        final Position pos = mobile.getPosition();
         final World world = position.getWorld();
         if (world != null) {
-            final Level level = world.getLevel(pos.getZ());
+            final Level level = world.getLevel(mobile.getZ());
             if (level != null) {
-                final Chunk chunk = level.getChunkOf(pos.getX(), pos.getY());
+                final Chunk chunk = level.getChunkOf(mobile.getX(),
+                        mobile.getY());
                 if (chunk != null) {
-                    final Mobile other = chunk
-                            .getMobile(pos.getX(), pos.getY());
+                    final Mobile other = chunk.getMobile(mobile.getX(),
+                            mobile.getY());
                     if (other == mobile) {
-                        chunk.setMobile(pos.getX(), pos.getY(), null);
+                        chunk.setMobile(mobile.getX(), mobile.getY(), null);
                     }
                 }
             }
         }
-        pos.setX(position.getX() + x);
-        pos.setY(position.getY() + y);
-        final boolean changedLevel = (position.getZ() != pos.getZ());
-        pos.setZ(position.getZ());
-        pos.setWorld(world);
-        mobile.updatedPosition(changedLevel);
+        final Position pos = position.clone();
+        pos.setX(pos.getX() + x);
+        pos.setY(pos.getY() + y);
+        // We don't change direction of mobile
+        pos.setDirection(mobile.getDirection());
+        mobile.updatedPosition(pos);
     }
 
     /** Sets a Mobile, using local coordinates. */
@@ -193,14 +193,17 @@ public class Chunk {
                     throw new IllegalArgumentException("Coordinate (" + x + ","
                             + y + ") is solid!");
                 }
-                mobiles[index] = mobile;
-                if (before != null) {
-                    before.getPosition().setWorld(null);
-                    before.updatedPosition(false);
+                final Chunk oldChunk = mobile.getChunk();
+                if (oldChunk != null) {
+                    oldChunk.setMobile(mobile.getX(), mobile.getY(), null);
                 }
+                mobiles[index] = mobile;
                 updateMobilePosition(x, y, mobile);
             } else {
                 mobiles[index] = null;
+            }
+            if (before != null) {
+                before.detach();
             }
         }
         final int countBefore = mobileCount;
@@ -285,9 +288,24 @@ public class Chunk {
     /** Runs an update cycle. */
     public void update() {
         if (mobileCount > 0) {
+            final int cycle = position.getWorld().getClock().getCycle();
             for (final Mobile mobile : mobiles) {
                 if (mobile != null) {
-                    mobile.getController().act(mobile);
+                    final MobileType type = mobile.getType();
+                    if (cycle % type.getSpeed() == 0) {
+                        mobile.getController().act();
+                    }
+                }
+            }
+        }
+    }
+
+    /** Passes all mobiles to the visitor. */
+    public void visitMobiles(final MobileVisitor visitor) {
+        if (mobileCount > 0) {
+            for (final Mobile mobile : mobiles) {
+                if (mobile != null) {
+                    visitor.visit(mobile);
                 }
             }
         }

@@ -41,6 +41,6 @@ public class RandomGenerator implements Generator {
      */
     @Override
     public void fill(final Chunk chunk) {
-        generators[Util.RND.nextInt(generators.length)].fill(chunk);
+        generators[Util.nextInt(generators.length)].fill(chunk);
     }
 }

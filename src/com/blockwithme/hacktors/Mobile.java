@@ -15,11 +15,15 @@
  */
 package com.blockwithme.hacktors;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import org.apache.commons.lang.ArrayUtils;
 
@@ -68,6 +72,8 @@ public class Mobile {
      * the position is null, it then means that the mobile is currently
      * "detached".
      */
+    @Setter(AccessLevel.NONE)
+    @Getter(AccessLevel.NONE)
     private final Position position = new Position();
 
     /** The equipment (and "droppings") currently carried by the mobile. */
@@ -82,42 +88,100 @@ public class Mobile {
     /** Optionally creates a specific mobile, depending on chance. */
     public static Mobile create(final MobileController theController,
             final MobileType type, final float probability) {
-        if (Util.RND.nextFloat() < probability) {
+        if (Util.nextFloat() < probability) {
             return null;
         }
-        return type.postInit(new Mobile(theController, type));
+        final Mobile result = type.postInit(new Mobile(theController, type));
+        theController.setMobile(result);
+        return result;
     }
 
     /** Creates a specific mobile. */
     public static Mobile create(final MobileController theController,
             final MobileType type) {
-        return type.postInit(new Mobile(theController, type));
+        final Mobile result = type.postInit(new Mobile(theController, type));
+        theController.setMobile(result);
+        return result;
     }
 
     /** Creates a specific mobile type. */
     public static Mobile create(final MobileType type) {
-        final MobileController controller = MobileControllers
-                .defaultControllerFor(type);
-        return type.postInit(new Mobile(controller, type));
+        return create(MobileControllers.createControllerFor(type), type);
     }
 
     /** Creates a random mobile. */
     public static Mobile create() {
-        final MobileType mobileType = MobileType.choose();
-        final MobileController controller = MobileControllers
-                .defaultControllerFor(mobileType);
-        return create(controller, mobileType);
+        return create(MobileType.choose());
     }
 
-    public Mobile(final MobileController theController, final MobileType theType) {
+    private Mobile(final MobileController theController,
+            final MobileType theType) {
         controller = theController;
         type = theType;
         id = NEXT_ID.incrementAndGet();
     }
 
+    /** toString() */
+    @Override
+    public String toString() {
+        String atk = "";
+        if (lastAttacker != null) {
+            atk = "Mobile(type=" + lastAttacker.getType() + ",id=" + id + ")";
+        }
+        return "Mobile(type=" + type + ",life=" + life + ",id=" + id
+                + ",position=" + position + ",equipment="
+                + Arrays.toString(equipment) + ",lastAttacked=" + lastAttacked
+                + ",lastAttacker=" + atk + ")";
+    }
+
     /** Mobile unique ID. */
     public int getID() {
         return id;
+    }
+
+    /** Mobile x position. */
+    public int getX() {
+        return position.getX();
+    }
+
+    /** Mobile y position. */
+    public int getY() {
+        return position.getY();
+    }
+
+    /** Mobile z position. */
+    public int getZ() {
+        return position.getZ();
+    }
+
+    /** Mobile direction. */
+    public Direction getDirection() {
+        return position.getDirection();
+    }
+
+    /** Changes the current direction. */
+    public boolean setDirection(final Direction theDirection) {
+        position.setDirection(theDirection);
+        controller.updatedDirection();
+        // Turn always succeeds
+        return true;
+    }
+
+    /** Mobile world. */
+    public World getWorld() {
+        return position.getWorld();
+    }
+
+    /** Mobile position copy. */
+    public Position getPositionClone() {
+        return position.clone();
+    }
+
+    /** Detach the mobile from the world. */
+    public void detach() {
+        final Position pos = position.clone();
+        pos.setWorld(null);
+        updatedPosition(pos);
     }
 
     /** Returns the mobiles carried items; it's equipment. */
@@ -162,9 +226,12 @@ public class Mobile {
             // 10 is maximum items
             return false;
         }
-        if (ArrayUtils.contains(equipment, theItem)) {
-            // Already in equipment ...
-            return false;
+        for (int i = 0; i < equipment.length; i++) {
+            if (equipment[i] == theItem) {
+                // Already in equipment ...
+                return false;
+            }
+
         }
         equipment = (Item[]) ArrayUtils.add(equipment, theItem);
         return true;
@@ -187,8 +254,30 @@ public class Mobile {
         return equipment[index];
     }
 
+    /** Informs the Mobile that it's position should be updated. */
+    public void updatedPosition(final Position thePosition) {
+        if (!position.equals(thePosition)) {
+            final boolean changedLevel = (position.getZ() != thePosition.getZ());
+            if (thePosition.getWorld() == null) {
+                // we are being detached!
+                final Chunk oldChunk = getChunk();
+                if (oldChunk != null) {
+                    oldChunk.setMobile(position.getX(), position.getY(), null);
+                }
+            } else {
+                final Chunk newChunk = getChunk();
+                if (newChunk != null) {
+                    newChunk.setMobile(thePosition.getX(), thePosition.getY(),
+                            this);
+                }
+            }
+            position.setPosition(thePosition);
+            updatedPosition(changedLevel);
+        }
+    }
+
     /** Informs the Mobile that it's position was updated. */
-    public void updatedPosition(final boolean changedLevel) {
+    private void updatedPosition(final boolean changedLevel) {
         controller.updatedPosition(changedLevel);
     }
 
@@ -290,33 +379,23 @@ public class Mobile {
             return false;
         }
         final Position next = position.next();
-        final Chunk chunk = world.getOrCreateChunk(next);
-        if (chunk == null) {
+        final Chunk newChunk = world.getOrCreateChunk(next);
+        if (newChunk == null) {
             // At worlds edge
             return false;
         }
         final int x = next.getX();
         final int y = next.getY();
-        if (chunk.occupied(x, y)) {
+        if (newChunk.occupied(x, y)) {
             // Next position is not empty.
             return false;
         }
         // OK
-        position.setX(x);
-        position.setY(y);
-        controller.updatedPosition(false);
-        final Block block = chunk.getBlock(x, y);
+        newChunk.setMobile(x, y, this);
+        final Block block = newChunk.getBlock(x, y);
         if (block.getType() == BlockType.Trap) {
             damage(BlockType.TRAP_DAMAGE, block);
         }
-        return true;
-    }
-
-    /** Changes the current direction. */
-    public boolean turn(final Direction theDirection) {
-        position.setDirection(theDirection);
-        controller.updatedDirection();
-        // Turn always succeeds
         return true;
     }
 
@@ -459,7 +538,7 @@ public class Mobile {
                 final Item item = equipment[i];
                 if (item.getType().food()) {
                     removeItem(i);
-                    life += item.getLife();
+                    life += item.getType().getFood();
                     controller.ate(item);
                     return true;
                 }
@@ -469,29 +548,15 @@ public class Mobile {
     }
 
     /** Attack using a missile weapon, if possible. */
-    public boolean fire() {
-        final World world = position.getWorld();
-        if (world != null) {
-            for (int i = 0; i < equipment.length; i++) {
-                final Item item = equipment[i];
-                if (item.getType().missile()) {
-                    removeItem(i);
-                    world.getOrCreateLevel(position.getZ()).handleMissile(item,
-                            position.getX(), position.getY(),
-                            position.getDirection());
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /** Drops some piece of equipment, if possible. */
-    public boolean drop(final int index) {
+    public boolean fire(final int index) {
         final Chunk chunk = getChunk();
         if ((chunk != null) && (index >= 0) && (index < equipment.length)) {
             final Item item = removeItem(index);
-            chunk.addItem(position.getX(), position.getY(), item);
+            chunk.getPosition()
+                    .getWorld()
+                    .getOrCreateLevel(position.getZ())
+                    .handleMissile(item, position.getX(), position.getY(),
+                            position.getDirection());
             return true;
         }
         return false;
@@ -515,8 +580,9 @@ public class Mobile {
         final Block block = chunk.getBlock(x, y);
         final BlockType blockType = block.getType();
         final boolean door = (blockType == BlockType.ClosedDoor);
-        final boolean chest = (blockType == BlockType.ClosedChest);
-        if (door || chest) {
+        final boolean openChest = (blockType == BlockType.OpenChest);
+        final boolean closedChest = (blockType == BlockType.ClosedChest);
+        if (door || openChest || closedChest) {
             for (int i = 0; i < equipment.length; i++) {
                 final Item item = equipment[i];
                 if (item.getType() == ItemType.Key) {
@@ -524,19 +590,23 @@ public class Mobile {
                         removeItem(i);
                     }
                     if (door) {
-                        chunk.setBlock(x, y, new Block(BlockType.OpenDoor));
+                        chunk.setBlock(x, y, Block.create(BlockType.OpenDoor));
                     } else {
                         // chest ...
-                        for (final Item loot : block.getContent()) {
-                            chunk.addItem(x, y, loot);
-                        }
-                        final Block newChest = new Block(BlockType.OpenChest);
+                        final Block newChest = Block
+                                .create(BlockType.OpenChest);
                         newChest.setContent(block.getContent());
                         chunk.setBlock(x, y, newChest);
                     }
                     return true;
                 }
             }
+            // No key! Attack!
+            if (block.getType().isDamageable()) {
+                attack(block, next, chunk);
+                return true;
+            }
+
         }
         return false;
     }
@@ -568,10 +638,11 @@ public class Mobile {
                         removeItem(i);
                     }
                     if (door) {
-                        chunk.setBlock(x, y, new Block(BlockType.ClosedDoor));
+                        chunk.setBlock(x, y, Block.create(BlockType.ClosedDoor));
                     } else {
                         // chest ...
-                        final Block newChest = new Block(BlockType.ClosedChest);
+                        final Block newChest = Block
+                                .create(BlockType.ClosedChest);
                         newChest.setContent(block.getContent());
                         chunk.setBlock(x, y, newChest);
                     }
@@ -597,13 +668,14 @@ public class Mobile {
         if (blockType == BlockType.StairsUp) {
             final int z = position.getZ();
             if (z > 0) {
-                position.setZ(z - 1);
-                chunk = getChunk();
+                final Position pos = position.clone();
+                pos.setZ(z - 1);
+                chunk = world.getOrCreateChunk(pos);
                 if (chunk.getBlock(x, y).getType() != BlockType.StairsDown) {
                     // Oops! Stairs don't match ... fix it now!
-                    chunk.setBlock(x, y, new Block(BlockType.StairsDown));
+                    chunk.setBlock(x, y, Block.create(BlockType.StairsDown));
                 }
-                updatedPosition(true);
+                updatedPosition(pos);
                 return true;
             }
         }
@@ -625,13 +697,14 @@ public class Mobile {
         if (blockType == BlockType.StairsDown) {
             final int z = position.getZ();
             if (z < World.Z - 1) {
-                position.setZ(z + 1);
-                chunk = getChunk();
+                final Position pos = position.clone();
+                pos.setZ(z + 1);
+                chunk = world.getOrCreateChunk(pos);
                 if (chunk.getBlock(x, y).getType() != BlockType.StairsUp) {
                     // Oops! Stairs don't match ... fix it now!
-                    chunk.setBlock(x, y, new Block(BlockType.StairsUp));
+                    chunk.setBlock(x, y, Block.create(BlockType.StairsUp));
                 }
-                updatedPosition(true);
+                updatedPosition(pos);
                 return true;
             }
         }
@@ -657,7 +730,7 @@ public class Mobile {
             for (int i = 0; i < equipment.length; i++) {
                 final Item item = equipment[i];
                 if (item.getType() == ItemType.Block) {
-                    chunk.setBlock(x, y, new Block(item.getBlockType()));
+                    chunk.setBlock(x, y, Block.create(item.getBlockType()));
                     removeItem(i);
                     return true;
                 }
@@ -698,7 +771,7 @@ public class Mobile {
                     stick--;
                 }
                 removeItem(stick);
-                addItem(new Item(ItemType.chooseCraftable(), null));
+                addItem(Item.create(ItemType.chooseCraftable()));
                 return true;
             }
         }

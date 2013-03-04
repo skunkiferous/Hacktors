@@ -209,11 +209,11 @@ public class Level {
         final int y = pos.getY();
         if (mobile == null) {
             if (!missile.use()) {
-                final Chunk chunk = getOrCreateChunk(x, y);
+                final Chunk chunk = getOrCreateChunkOf(x, y);
                 chunk.addItem(x, y, missile);
             }
         } else {
-            final Chunk chunk = getOrCreateChunk(x, y);
+            final Chunk chunk = getOrCreateChunkOf(x, y);
             chunk.setMobile(x, y, mobile);
         }
     }
@@ -224,6 +224,17 @@ public class Level {
             for (final Chunk chunk : chunks) {
                 if (chunk != null) {
                     chunk.update();
+                }
+            }
+        }
+    }
+
+    /** Passes all mobiles to the visitor. */
+    public void visitMobiles(final MobileVisitor visitor) {
+        if (mobileCount > 0) {
+            for (final Chunk chunk : chunks) {
+                if (chunk != null) {
+                    chunk.visitMobiles(visitor);
                 }
             }
         }

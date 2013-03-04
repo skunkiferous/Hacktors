@@ -107,11 +107,12 @@ public class World {
         Level result = levels[z];
         if (result == null) {
             // TODO : we should have some kind of game world profiles, that dictates those probabilities.
-            if (Util.RND.nextBoolean()) {
+            if ((z == 0) || Util.nextBoolean()) {
                 result = new Level(Generators.RANDOM);
             } else {
-                final int gen = Util.RND.nextInt(Generators.ALL_TERRAIN.length);
-                result = new Level(Generators.ALL_TERRAIN[gen]);
+                final int gen = Util
+                        .nextInt(Generators.NON_EMPTY_TERRAIN.length);
+                result = new Level(Generators.NON_EMPTY_TERRAIN[gen]);
             }
             setLevel(z, result);
         }
@@ -159,6 +160,17 @@ public class World {
             for (final Level level : levels) {
                 if (level != null) {
                     level.update();
+                }
+            }
+        }
+    }
+
+    /** Passes all mobiles to the visitor. */
+    public void visitMobiles(final MobileVisitor visitor) {
+        if (mobileCount > 0) {
+            for (final Level level : levels) {
+                if (level != null) {
+                    level.visitMobiles(visitor);
                 }
             }
         }

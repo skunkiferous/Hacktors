@@ -26,39 +26,27 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public final class MobileControllers {
 
-    /** Human controller. */
-    public static final MobileController HUMAN = new GenericMobileController();
-
-    /** Zombie controller. */
-    public static final MobileController ZOMBIE = new GenericMobileController();
-
-    /** Pig controller. */
-    public static final MobileController PIG = new GenericMobileController();
-
-    /** Dog controller. */
-    public static final MobileController DOG = new GenericMobileController();
-
     /** NO creation */
     private MobileControllers() {
         // NOP
     }
 
     /** Returns an appropriate MobileController for this type of Mobile. */
-    public static MobileController defaultControllerFor(final MobileType type) {
+    public static MobileController createControllerFor(final MobileType type) {
         if (type == null) {
             throw new IllegalArgumentException("type is null");
         }
         if (type == MobileType.Human) {
-            return HUMAN;
+            return new GenericMobileController();
         }
         if (type == MobileType.Zombie) {
-            return ZOMBIE;
+            return new GenericMobileController();
         }
         if (type == MobileType.Pig) {
-            return PIG;
+            return new GenericMobileController();
         }
         if (type == MobileType.Dog) {
-            return DOG;
+            return new GenericMobileController();
         }
         throw new IllegalArgumentException("Unknows MobileType: " + type);
     }

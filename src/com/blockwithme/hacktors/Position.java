@@ -44,6 +44,13 @@ public class Position implements Cloneable {
     /** The world. If null, then the object is not currently used in the game. */
     private World world;
 
+    /** toString */
+    @Override
+    public String toString() {
+        return "Position(x=" + x + ",y=" + y + ",z=" + z + ",direction="
+                + direction + ")";
+    }
+
     /** Cloneable */
     @Override
     public Position clone() {
@@ -55,6 +62,29 @@ public class Position implements Cloneable {
         }
     }
 
+    /** Completely copies this position. Returns true on a non-direction change. */
+    public boolean setPosition(final Position thePosition) {
+        boolean result = false;
+        if (x != thePosition.x) {
+            x = thePosition.x;
+            result = true;
+        }
+        if (y != thePosition.y) {
+            y = thePosition.y;
+            result = true;
+        }
+        if (z != thePosition.z) {
+            z = thePosition.z;
+            result = true;
+        }
+        if (world != thePosition.world) {
+            world = thePosition.world;
+            result = true;
+        }
+        direction = thePosition.direction;
+        return result;
+    }
+
     /** The direction. */
     public void setDirection(final Direction theDirection) {
         direction = Preconditions.checkNotNull(theDirection);
@@ -63,9 +93,9 @@ public class Position implements Cloneable {
     /** Returns the next position in the current direction. */
     public Position next() {
         final Position result = clone();
-        if (direction == Direction.XUp) {
+        if (direction == Direction.XDown) {
             result.x++;
-        } else if (direction == Direction.XDown) {
+        } else if (direction == Direction.XUp) {
             result.x--;
         } else if (direction == Direction.YUp) {
             result.y++;
@@ -107,7 +137,7 @@ public class Position implements Cloneable {
             return null;
         }
         if (Math.abs(dx) > Math.abs(dy)) {
-            return (dx > 0) ? Direction.XDown : Direction.XUp;
+            return (dx > 0) ? Direction.XUp : Direction.XDown;
         }
         return (dy > 0) ? Direction.YDown : Direction.YUp;
     }

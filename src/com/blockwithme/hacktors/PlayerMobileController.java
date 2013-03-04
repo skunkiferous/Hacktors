@@ -15,9 +15,13 @@
  */
 package com.blockwithme.hacktors;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+
+import lombok.Data;
 
 import com.google.common.base.Preconditions;
 
@@ -29,6 +33,32 @@ import com.google.common.base.Preconditions;
 @ParametersAreNonnullByDefault
 public class PlayerMobileController implements MobileController {
 
+    /** A text message, with a duration. */
+    @Data
+    private static class Message {
+        private static final long TIMEOUT = 5000L;
+
+        public final StringBuilder output = new StringBuilder();
+        private final long created = System.currentTimeMillis();
+        private String text;
+
+        /** Returns true when the message timed-out, and should be deleted. */
+        public boolean delete() {
+            return System.currentTimeMillis() - created >= TIMEOUT;
+        }
+
+        @Override
+        public String toString() {
+            if (text == null) {
+                text = output.toString();
+            }
+            return text;
+        }
+    }
+
+    /** The player avatar. */
+    private Mobile mobile;
+
     /** Reference to the PlayerConsole :*/
     private final PlayerConsole console;
 
@@ -38,9 +68,57 @@ public class PlayerMobileController implements MobileController {
     /** The buffered output. */
     private final StringBuilder output = new StringBuilder();
 
+    /** Currently visible messages. */
+    private final List<Message> messages = new ArrayList<>();
+
+    /** Creates a new message. */
+    private StringBuilder msg() {
+        final Message msg = new Message();
+        if (!messages.isEmpty()) {
+            System.out.println(messages.get(messages.size() - 1));
+        }
+        messages.add(msg);
+        return msg.output;
+    }
+
+    /** Converts an Item to String. */
+    private String str(final Item item) {
+        return item.getType().toString();
+    }
+
+    /** Converts an Block to String. */
+    private String str(final Block block) {
+        return block.getType().toString();
+    }
+
+    /** Converts an Mobile to String. */
+    private String str(final Mobile mobile) {
+        return mobile.getType().toString();
+    }
+
+    /** Converts an object to String. */
+    private String str(final Object obj) {
+        if (obj instanceof Item) {
+            return str((Item) obj);
+        }
+        if (obj instanceof Block) {
+            return str((Block) obj);
+        }
+        if (obj instanceof Mobile) {
+            return str((Mobile) obj);
+        }
+        return obj.toString();
+    }
+
     /** Constructor */
     public PlayerMobileController(final PlayerConsole theConsole) {
         console = Preconditions.checkNotNull(theConsole);
+    }
+
+    /** Avatar setter */
+    @Override
+    public void setMobile(final Mobile theMobile) {
+        mobile = Preconditions.checkNotNull(theMobile);
     }
 
     /* (non-Javadoc)
@@ -65,9 +143,10 @@ public class PlayerMobileController implements MobileController {
     @Override
     public void pickedUp(final Item[] array) {
         if ((array != null) && (array.length > 0)) {
-            output.append("You picked up:\n");
+            final StringBuilder msg = msg();
+            msg.append("You picked up:\n");
             for (final Item item : array) {
-                output.append(" a ").append(item).append('\n');
+                msg.append(" a ").append(str(item)).append('\n');
             }
         }
     }
@@ -78,11 +157,10 @@ public class PlayerMobileController implements MobileController {
     @Override
     public void damaged(final int amount, final Object source) {
         if (source == null) {
-            output.append("You took ").append(amount)
-                    .append(" damage from ?\n");
+            msg().append("You took ").append(amount).append(" damage from ?\n");
         } else {
-            output.append("You took ").append(amount).append(" damage from ")
-                    .append(source).append('\n');
+            msg().append("You took ").append(amount).append(" damage from ")
+                    .append(str(source)).append('\n');
         }
     }
 
@@ -91,7 +169,8 @@ public class PlayerMobileController implements MobileController {
      */
     @Override
     public void dead() {
-        output.append("YOU DIE! GAME OVER!\n");
+        msg().append("YOU DIE! GAME OVER!\n");
+        quit(mobile.getWorld());
     }
 
     /* (non-Javadoc)
@@ -100,14 +179,15 @@ public class PlayerMobileController implements MobileController {
     @Override
     public void attacked(final Mobile other, final Item item,
             final boolean killed) {
-        output.append("You attacked the ").append(other);
+        final StringBuilder msg = msg();
+        msg.append("You attacked the ").append(str(other));
         if (item != null) {
-            output.append(" with a ").append(item);
+            msg.append(" with a ").append(str(item));
         }
         if (killed) {
-            output.append(" and killed it!");
+            msg.append(" and killed it!");
         }
-        output.append('\n');
+        msg.append('\n');
     }
 
     /* (non-Javadoc)
@@ -116,14 +196,15 @@ public class PlayerMobileController implements MobileController {
     @Override
     public void attacked(final Block block, final Item item,
             final boolean destroyed) {
-        output.append("You attacked the ").append(block);
+        final StringBuilder msg = msg();
+        msg.append("You attacked the ").append(str(block));
         if (item != null) {
-            output.append(" with a ").append(item);
+            msg.append(" with a ").append(str(item));
         }
         if (destroyed) {
-            output.append(" and destroyed it!");
+            msg.append(" and destroyed it!");
         }
-        output.append('\n');
+        msg.append('\n');
     }
 
     /* (non-Javadoc)
@@ -131,7 +212,8 @@ public class PlayerMobileController implements MobileController {
      */
     @Override
     public void itemAdded(final Item theItem) {
-        output.append("Added to your inventory: ").append(theItem).append('\n');
+        msg().append("Added to your inventory: ").append(str(theItem))
+                .append('\n');
     }
 
     /* (non-Javadoc)
@@ -139,7 +221,7 @@ public class PlayerMobileController implements MobileController {
      */
     @Override
     public void itemRemoved(final Item theItem) {
-        output.append("Removed from your inventory: ").append(theItem)
+        msg().append("Removed from your inventory: ").append(str(theItem))
                 .append('\n');
     }
 
@@ -148,12 +230,17 @@ public class PlayerMobileController implements MobileController {
      */
     @Override
     public void ate(final Item theItem) {
-        output.append("You ate a ").append(theItem).append('\n');
+        final StringBuilder msg = msg();
+        msg.append("You ate a ").append(str(theItem)).append('.');
+        if (theItem.getType().getFood() < 0) {
+            msg.append(" You feel poisoned!");
+        }
+        msg.append('\n');
     }
 
     /** Display game area around player. */
-    private void displayArea(final Mobile mobile, final World world) {
-        final Position pos = mobile.getPosition();
+    private void displayArea(final World world) {
+        final Position pos = mobile.getPositionClone();
         final MobileType type = mobile.getType();
         final int perception = type.getPerception();
         final int x = pos.getX();
@@ -162,9 +249,10 @@ public class PlayerMobileController implements MobileController {
         final int xMax = x + perception;
         final int yMin = y - perception;
         final int yMax = y + perception;
-        final char[][] area = new char[perception][];
+        final int size = 1 + 2 * perception;
+        final char[][] area = new char[size][];
         for (int i = 0; i < area.length; i++) {
-            area[i] = new char[perception];
+            area[i] = new char[size];
             Arrays.fill(area[i], ' ');
         }
         final Level level = world.getOrCreateLevel(pos.getZ());
@@ -181,19 +269,26 @@ public class PlayerMobileController implements MobileController {
                         final Chunk chunk = level.getOrCreateChunkOf(px, py);
                         final Mobile mob = chunk.getMobile(px, py);
                         if (mob != null) {
-                            area[m][n] = mob.getType().getDisplay();
+                            final int color = mob.getType().getColor()
+                                    .ordinal();
+                            area[m][n] = (char) (mob.getType().getDisplay() | (color << 8));
                         } else {
                             final Item[] items = chunk.getItems(px, py);
                             if (items.length > 0) {
                                 if (items.length == 1) {
-                                    area[m][n] = items[0].getType()
-                                            .getDisplay();
+                                    final int color = items[0].getType()
+                                            .getColor().ordinal();
+                                    area[m][n] = (char) (items[0].getType()
+                                            .getDisplay() | (color << 8));
                                 } else {
                                     area[m][n] = '*';
                                 }
                             } else {
                                 final Block block = chunk.getBlock(px, py);
-                                area[m][n] = block.getType().getDisplay();
+                                final int color = block.getType().getColor()
+                                        .ordinal();
+                                area[m][n] = (char) (block.getType()
+                                        .getDisplay() | (color << 8));
                             }
                         }
                     }
@@ -206,17 +301,19 @@ public class PlayerMobileController implements MobileController {
     }
 
     /** Display player stats. */
-    private void displayStats(final Mobile mobile, final World world) {
-        final Position pos = mobile.getPosition();
+    private void displayStats(final World world) {
+        final Position pos = mobile.getPositionClone();
         final int x = pos.getX();
         final int y = pos.getY();
         final int z = pos.getZ();
         final int cycle = world.getClock().getCycle();
         final int life = mobile.getLife();
         final MobileType type = mobile.getType();
+        final char dir = pos.getDirection().getDisplay();
         output.append("(").append(x).append(",").append(y).append(",")
-                .append(z).append(",").append(cycle).append(") HP: ")
-                .append(life).append(" SPC: ").append(type).append('\n');
+                .append(z).append(") TIME: ").append(cycle).append(" HP: ")
+                .append(life).append(" DIR: ").append(dir).append(" RACE: ")
+                .append(type).append('\n');
         final Item[] items = mobile.getEquipment();
         boolean newline = false;
         for (int i = 0; i < items.length; i++) {
@@ -232,6 +329,27 @@ public class PlayerMobileController implements MobileController {
                 newline = false;
             }
         }
+        final Level level = world.getOrCreateLevel(pos.getZ());
+        final Chunk chunk = level.getOrCreateChunkOf(x, y);
+        final Item[] itemsUnderAvatar = chunk.getItems(x, y);
+        final Block blockUnderAvatar = chunk.getBlock(x, y);
+        final boolean stuff = (itemsUnderAvatar.length > 0);
+        final boolean notEmpty = (blockUnderAvatar.getType() != BlockType.Empty);
+        if (stuff || notEmpty) {
+            if (newline) {
+                output.append('\n');
+            }
+            output.append("You are standing on:");
+            if (notEmpty) {
+                output.append(' ').append(str(blockUnderAvatar));
+            }
+            if (stuff) {
+                for (final Item item : itemsUnderAvatar) {
+                    output.append(' ').append(str(item));
+                }
+            }
+            newline = true;
+        }
         if (newline) {
             output.append('\n');
         }
@@ -239,42 +357,48 @@ public class PlayerMobileController implements MobileController {
 
     /** Gives out the help. */
     private void help() {
-        // TODO
+        final StringBuilder msg = msg();
+        msg.append("h - help (What you see now)\n");
+        msg.append("q - quit (Terminate the game)\n");
+        msg.append("w - up (Move towards the top of the screen)\n");
+        msg.append("s - down (Move towards the bottom of the screen)\n");
+        msg.append("a - left (Move towards the left of the screen)\n");
+        msg.append("d - right (Move towards the right of the screen)\n");
+        msg.append("o - open (A chest or door)\n");
+        msg.append("c - close (A chest or door)\n");
+        msg.append("< - go upstairs (If there is a stairs up!)\n");
+        msg.append("> - go downstairs (If there is a stairs down!)\n");
+        msg.append("e - eat (If you have food)\n");
+        msg.append("b - put down block (If you have a block)\n");
+        msg.append("p - pickup items on floor (If any)\n");
+        msg.append("i - craft items (If you see an anvil)\n");
+        msg.append("0-9 - Throw item with given number.\n");
     }
 
     /** Quits the game. */
     private void quit(final World world) {
-        output.append("QUITTING!\n");
-        flushOutput();
+        msg().append("QUITTING!\n");
         world.getClock().stop();
     }
 
-    /** Flushes the output */
-    private void flushOutput() {
-        if (output.length() > 0) {
-            console.output(output.toString());
-            output.setLength(0);
-        }
-    }
-
     /** Try to go, or attack, in the specified direction. */
-    private void go(final Mobile mobile, final Direction direction) {
-        mobile.getPosition().setDirection(direction);
+    private void move(final Direction direction) {
+        mobile.setDirection(direction);
         if (!mobile.move()) {
             mobile.attack();
         }
     }
 
-    /** Drops an item. */
-    private void drop(final Mobile mobile, final char item) {
+    /** Throws an item. */
+    private void fire(final char item) {
         final int index = item - '0';
-        if (!mobile.drop(index)) {
-            output.append("FAILED TO DROP ITEM ").append(index).append("!\n");
+        if (!mobile.fire(index)) {
+            msg().append("FAILED TO THROW ITEM ").append(index).append("!\n");
         }
     }
 
     /** Process the player input. */
-    private void processInput(final Mobile mobile, final World world) {
+    private void processInput(final World world) {
         input.append(console.input());
         if (input.length() > 0) {
             final char cmd = input.charAt(0);
@@ -289,72 +413,66 @@ public class PlayerMobileController implements MobileController {
                 break;
 
             case 'w':
-                go(mobile, Direction.YUp);
+                move(Direction.XUp);
                 break;
 
             case 's':
-                go(mobile, Direction.YDown);
+                move(Direction.XDown);
                 break;
 
             case 'a':
-                go(mobile, Direction.YDown);
+                move(Direction.YDown);
                 break;
 
             case 'd':
-                go(mobile, Direction.YUp);
+                move(Direction.YUp);
                 break;
 
             case 'o':
                 if (!mobile.open()) {
-                    output.append("FAILED TO OPEN!\n");
+                    msg().append("FAILED TO OPEN!\n");
                 }
                 break;
 
             case 'c':
                 if (!mobile.close()) {
-                    output.append("FAILED TO CLOSE!\n");
+                    msg().append("FAILED TO CLOSE!\n");
                 }
                 break;
 
             case '<':
                 if (!mobile.goUp()) {
-                    output.append("FAILED TO GO UP!\n");
+                    msg().append("FAILED TO GO UP!\n");
                 }
                 break;
 
             case '>':
                 if (!mobile.goDown()) {
-                    output.append("FAILED TO GO DOWN!\n");
-                }
-                break;
-
-            case 'f':
-                if (!mobile.fire()) {
-                    output.append("FAILED TO FIRE!\n");
+                    msg().append("FAILED TO GO DOWN!\n");
                 }
                 break;
 
             case 'e':
                 if (!mobile.eat()) {
-                    output.append("FAILED TO EAT!\n");
+                    msg().append("FAILED TO EAT!\n");
                 }
                 break;
 
             case 'b':
                 if (!mobile.layBlock()) {
-                    output.append("FAILED TO LAY BLOCK!\n");
+                    msg().append("FAILED TO LAY BLOCK!\n");
                 }
                 break;
 
             case 'p':
                 if (!mobile.pickup()) {
-                    output.append("FAILED TO PICKUP!\n");
+                    msg().append("FAILED TO PICKUP!\n");
                 }
                 break;
 
             case 'i':
                 if (!mobile.craftItems()) {
-                    output.append("FAILED TO CRAFT ITEM!\n");
+                    msg().append("FAILED TO CRAFT ITEM!\n");
                 }
                 break;
 
@@ -368,30 +486,69 @@ public class PlayerMobileController implements MobileController {
             case '7':
             case '8':
             case '9':
-                drop(mobile, cmd);
+                fire(cmd);
                 break;
 
             default:
-                output.append("UNKNOWN COMMAND: ").append(cmd).append('\n');
+                msg().append("UNKNOWN COMMAND: ").append(cmd).append('\n');
                 help();
                 break;
             }
         }
-        flushOutput();
     }
 
     /* (non-Javadoc)
-     * @see com.blockwithme.hacktors.MobileController#act(com.blockwithme.hacktors.Mobile)
+     * @see com.blockwithme.hacktors.MobileController#act()
      */
     @Override
-    public void act(final Mobile mobile) {
-        final World world = mobile.getPosition().getWorld();
+    public void act() {
+        final World world = mobile.getWorld();
         if (world == null) {
             System.out.println("I'm sorry Dave, I can't let you do that.");
+        } else if (mobile == null) {
+            System.out.println("You're a gonner!");
         } else {
-            displayArea(mobile, world);
-            displayStats(mobile, world);
-            processInput(mobile, world);
+            displayArea(world);
+            displayStats(world);
+            processInput(world);
+            flushOutput(true);
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see com.blockwithme.hacktors.MobileController#stop()
+     */
+    @Override
+    public void stop() {
+        flushOutput(false);
+        while (!messages.isEmpty()) {
+            try {
+                Thread.sleep(100);
+            } catch (final InterruptedException e) {
+                break;
+            }
+            for (int i = 0; i < messages.size(); i++) {
+                if (messages.get(i).delete()) {
+                    messages.remove(i--);
+                }
+            }
+        }
+        console.exit();
+    }
+
+    /** Flushes the output */
+    private void flushOutput(final boolean clearScreen) {
+        if (output.length() > 0) {
+            for (int i = 0; i < messages.size(); i++) {
+                final Message msg = messages.get(i);
+                if (msg.delete()) {
+                    messages.remove(i--);
+                } else {
+                    output.append(msg);
+                }
+            }
+            console.output(output.toString(), clearScreen);
+            output.setLength(0);
         }
     }
 }

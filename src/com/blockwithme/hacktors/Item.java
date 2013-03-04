@@ -81,7 +81,7 @@ public class Item {
     /** Optionally creates a new item, with the given type and block type. */
     public static Item create(final ItemType type, final BlockType blockType,
             final float probability) {
-        if (Util.RND.nextFloat() < probability) {
+        if (Util.nextFloat() < probability) {
             return null;
         }
         return create(type, blockType);
@@ -99,7 +99,7 @@ public class Item {
 
     /** Optionally creates a new item randomly. */
     public static Item create(final float probability) {
-        if (Util.RND.nextFloat() < probability) {
+        if (Util.nextFloat() < probability) {
             return null;
         }
         return create();
