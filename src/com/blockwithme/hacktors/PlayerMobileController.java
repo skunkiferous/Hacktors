@@ -42,6 +42,11 @@ public class PlayerMobileController implements MobileController {
         private final long created = System.currentTimeMillis();
         private String text;
 
+        /** Constructor */
+        public Message(final int cycle) {
+            output.append(cycle).append(": ");
+        }
+
         /** Returns true when the message timed-out, and should be deleted. */
         public boolean delete() {
             return System.currentTimeMillis() - created >= TIMEOUT;
@@ -59,6 +64,9 @@ public class PlayerMobileController implements MobileController {
     /** The player avatar. */
     private Mobile mobile;
 
+    /** The clock. */
+    private Clock clock;
+
     /** Reference to the PlayerConsole :*/
     private final PlayerConsole console;
 
@@ -73,7 +81,8 @@ public class PlayerMobileController implements MobileController {
 
     /** Creates a new message. */
     private StringBuilder msg() {
-        final Message msg = new Message();
+        final int cycle = (clock == null) ? 0 : clock.getCycle();
+        final Message msg = new Message(cycle);
         if (!messages.isEmpty()) {
             System.out.println(messages.get(messages.size() - 1));
         }
@@ -83,7 +92,11 @@ public class PlayerMobileController implements MobileController {
 
     /** Converts an Item to String. */
     private String str(final Item item) {
-        return item.getType().toString();
+        final ItemType type = item.getType();
+        if (type == ItemType.Block) {
+            return type + " (" + item.getBlockType() + ")";
+        }
+        return type.toString();
     }
 
     /** Converts an Block to String. */
@@ -92,8 +105,8 @@ public class PlayerMobileController implements MobileController {
     }
 
     /** Converts an Mobile to String. */
-    private String str(final Mobile mobile) {
-        return mobile.getType().toString();
+    private String str(final Mobile mob) {
+        return mob.getType().toString();
     }
 
     /** Converts an object to String. */
@@ -113,6 +126,7 @@ public class PlayerMobileController implements MobileController {
     /** Constructor */
     public PlayerMobileController(final PlayerConsole theConsole) {
         console = Preconditions.checkNotNull(theConsole);
+        msg().append("Welcome to Hacktors, Adventurer!\nPRESS 'h' FOR HELP!\n");
     }
 
     /** Avatar setter */
@@ -238,6 +252,29 @@ public class PlayerMobileController implements MobileController {
         msg.append('\n');
     }
 
+    /* (non-Javadoc)
+     * @see com.blockwithme.hacktors.MobileController#equipmentDamaged(com.blockwithme.hacktors.Item,int)
+     */
+    @Override
+    public void equipmentDamaged(final Item theItem, final int amount) {
+        final StringBuilder msg = msg();
+        msg.append("Your ").append(str(theItem)).append(" took ")
+                .append(amount).append(" points of damage.\n");
+        if (theItem.destroyed()) {
+            msg.append("Your ").append(str(theItem)).append(" is destroyed!\n");
+        }
+        msg.append('\n');
+    }
+
+    /* (non-Javadoc)
+     * @see com.blockwithme.hacktors.MobileController#fired(com.blockwithme.hacktors.Item)
+     */
+    @Override
+    public void fired(final Item theItem) {
+        final StringBuilder msg = msg();
+        msg.append("You threw a ").append(str(theItem)).append(".\n");
+    }
+
     /** Display game area around player. */
     private void displayArea(final World world) {
         final Position pos = mobile.getPositionClone();
@@ -358,21 +395,22 @@ public class PlayerMobileController implements MobileController {
     /** Gives out the help. */
     private void help() {
         final StringBuilder msg = msg();
-        msg.append("h - help (What you see now)\n");
-        msg.append("q - quit (Terminate the game)\n");
-        msg.append("w - up (Move towards the top of the screen)\n");
-        msg.append("s - down (Move towards the bottom of the screen)\n");
-        msg.append("a - left (Move towards the left of the screen)\n");
-        msg.append("d - right (Move towards the right of the screen)\n");
-        msg.append("o - open (A chest or door)\n");
-        msg.append("c - close (A chest or door)\n");
-        msg.append("< - go upstairs (If there is a stairs up!)\n");
-        msg.append("> - go downstairs (If there is a stairs down!)\n");
-        msg.append("e - eat (If you have food)\n");
-        msg.append("b - put down block (If you have a block)\n");
-        msg.append("p - pickup items on floor (If any)\n");
-        msg.append("i - craft items (If you see an anvil)\n");
-        msg.append("0-9 - Throw item with given number.\n");
+        msg.append("h       - help (What you see now)\n");
+        msg.append("q       - quit (Terminate the game)\n");
+        msg.append("w/UP    - up (Move towards the top of the screen)\n");
+        msg.append("s/DOWN  - down (Move towards the bottom of the screen)\n");
+        msg.append("a/LEFT  - left (Move towards the left of the screen)\n");
+        msg.append("d/RIGHT - right (Move towards the right of the screen)\n");
+        msg.append("o       - open (A chest or door)\n");
+        msg.append("c       - close (A chest or door)\n");
+        msg.append("<       - go upstairs (If there is a stairs up!)\n");
+        msg.append(">       - go downstairs (If there is a stairs down!)\n");
+        msg.append("e       - eat (If you have food)\n");
+        msg.append("b       - put down block (If you have a block)\n");
+        msg.append("p       - pickup items on floor (If any)\n");
+        msg.append("i       - craft items (If you see an anvil)\n");
+        msg.append("0-9     - Throw item with given number.\n");
+        msg.append("TAB     - Switch between turn-based and real-time modes.\n");
     }
 
     /** Quits the game. */
@@ -397,9 +435,37 @@ public class PlayerMobileController implements MobileController {
         }
     }
 
+    /** Get user input. */
+    private void getUserInput() {
+        boolean realTime = clock.isRealTime();
+        if (realTime) {
+            input.append(console.input());
+        } else {
+            boolean again = true;
+            while (again) {
+                final String s = console.input();
+                if (!s.isEmpty()) {
+                    input.append(s);
+                    again = false;
+                } else {
+                    realTime = clock.isRealTime();
+                    if (realTime) {
+                        again = false;
+                    } else {
+                        try {
+                            Thread.sleep(100L);
+                        } catch (final InterruptedException e) {
+                            // NOP
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /** Process the player input. */
     private void processInput(final World world) {
-        input.append(console.input());
+        getUserInput();
         if (input.length() > 0) {
             final char cmd = input.charAt(0);
             input.deleteCharAt(0);
@@ -508,9 +574,13 @@ public class PlayerMobileController implements MobileController {
         } else if (mobile == null) {
             System.out.println("You're a gonner!");
         } else {
+            clock = world.getClock();
             displayArea(world);
             displayStats(world);
+            final String display = output.toString();
+            flushOutput(true);
             processInput(world);
+            output.append(display);
             flushOutput(true);
         }
     }

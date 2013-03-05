@@ -23,8 +23,8 @@ package com.blockwithme.hacktors;
 public class Main {
     /** Starts the game. */
     public static void main(final String[] args) {
-        final PlayerConsole console = new PlayerConsole();
         final World world = new World();
+        final PlayerConsole console = new PlayerConsole(world);
         final PlayerMobileController controller = new PlayerMobileController(
                 console);
         final Mobile avatar = Mobile.create(controller, MobileType.Human);

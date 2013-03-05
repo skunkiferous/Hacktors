@@ -135,7 +135,7 @@ public class BlockType extends Enum40<BlockType> implements Displayable {
         Preconditions.checkNotNull(block);
         Preconditions.checkArgument(block.getType() == this);
         block.setLife((life == -1) ? -1 : life);
-        if (this == BlockType.ClosedChest) {
+        if ((this == BlockType.ClosedChest) || (this == BlockType.OpenChest)) {
             final int count = Util.nextInt(2) + 1;
             Item[] content = block.getContent();
             for (int i = 0; i < count; i++) {

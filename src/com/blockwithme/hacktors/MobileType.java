@@ -39,14 +39,14 @@ public class MobileType extends Enum40<MobileType> implements Displayable {
     /** Pigs */
     public static final MobileType Pig = new MobileType(20, 1, 3, 'P',
             Color.MAGENTA, MobileType.EMPTY, new ItemType[] { ItemType.Apple },
-            1, ItemType.Meat, ItemType.Meat, ItemType.Meat);
+            10, ItemType.Meat, ItemType.Meat, ItemType.Meat);
     /** Humans (including the player) */
     public static final MobileType Human = new MobileType(100, 5, 4, 'H',
             Color.WHITE, new MobileType[] { Pig }, new ItemType[] {
                     ItemType.Apple, ItemType.Meat }, 8, null, null, null);
     /** Zombies! */
     public static final MobileType Zombie = new MobileType(100, 10, 3, 'Z',
-            Color.GREEN, new MobileType[] { Human }, ItemType.EMPTY, 1, null,
+            Color.GREEN, new MobileType[] { Human }, ItemType.EMPTY, 10, null,
             ItemType.Bone, ItemType.Bone);
     /** Dogs */
     public static final MobileType Dog = new MobileType(50, 10, 4, 'D',

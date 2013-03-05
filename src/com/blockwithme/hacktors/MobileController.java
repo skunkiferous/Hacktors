@@ -93,6 +93,18 @@ public interface MobileController {
     void ate(final Item item);
 
     /**
+     * Informs the MobileController that this item has been thrown (fired).
+     * @param result
+     */
+    void fired(final Item theItem);
+
+    /**
+     * Informs the MobileController that this item has been damaged.
+     * @param result
+     */
+    void equipmentDamaged(final Item theItem, final int amount);
+
+    /**
      * Informs the MobileController that the game is stopping.
      */
     void stop();

@@ -46,13 +46,21 @@ public class PlayerConsole {
     /** The Terminal. */
     private final Terminal terminal;
 
+    /** The game world. */
+    private final World world;
+
+    /** The clock. */
+    private final Clock clock;
+
     /** Constructor */
-    public PlayerConsole() {
+    public PlayerConsole(final World theWorld) {
         if (System.getProperty("os.name", "").toLowerCase().contains("windows")) {
             terminal = TerminalFacade.createSwingTerminal();
         } else {
             terminal = TerminalFacade.createTerminal();
         }
+        world = theWorld;
+        clock = world.getClock();
         terminal.enterPrivateMode();
     }
 
@@ -101,6 +109,20 @@ public class PlayerConsole {
         if (key == null) {
             return "";
         }
-        return String.valueOf(key.getCharacter());
+        switch (key.getKind()) {
+        case ArrowUp:
+            return "w";
+        case ArrowDown:
+            return "s";
+        case ArrowLeft:
+            return "a";
+        case ArrowRight:
+            return "d";
+        case Tab:
+            clock.setRealTime(!clock.isRealTime());
+            return "";
+        default:
+            return String.valueOf(key.getCharacter());
+        }
     }
 }

@@ -41,10 +41,19 @@ public final class Generators {
     /** Fills in N block at random with specific type. */
     private static void fillNBlocks(final Chunk chunk, final int n,
             final BlockType type) {
+        final int z = chunk.getPosition().getZ();
         for (int i = 0; i < n; i++) {
             final int x = Util.nextInt(Chunk.X);
             final int y = Util.nextInt(Chunk.Y);
-            final Block block = Block.create(type);
+            Block block = Block.create(type);
+            if ((type == null) && (block.getType() == BlockType.StairsUp)
+                    && (z == 0)) {
+                block = Block.create(BlockType.StairsDown);
+            }
+            if ((type == null) && (block.getType() == BlockType.StairsDown)
+                    && (z == World.Z - 1)) {
+                block = Block.create(BlockType.StairsUp);
+            }
             chunk.setBlockLocal(x, y, block);
         }
     }

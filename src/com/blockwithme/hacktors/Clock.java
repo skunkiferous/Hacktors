@@ -46,12 +46,25 @@ public class Clock implements Runnable {
     /** Should we stop? */
     private volatile boolean stop;
 
+    /** Do we run in real-time, or do we wait for the user input? */
+    private volatile boolean realTime;
+
     /** The current cycle. */
     private final AtomicInteger cycle = new AtomicInteger();
 
     /** Constructor */
     public Clock(final World theWorld) {
         world = Preconditions.checkNotNull(theWorld);
+    }
+
+    /** Do we run in real-time, or do we wait for the user input? */
+    public boolean isRealTime() {
+        return realTime;
+    }
+
+    /** Sets the real-time flag. */
+    public void setRealTime(final boolean theRealTime) {
+        realTime = theRealTime;
     }
 
     /** Stop the run. */
@@ -82,13 +95,17 @@ public class Clock implements Runnable {
     public void run() {
         while (!stop) {
             try {
-                final long before = System.nanoTime();
-                world.update();
-                final long after = System.nanoTime();
-                final long duration = (after - before) / NANOS_IN_MILLIS;
-                if (duration < CYCLE) {
-                    final long sleep = CYCLE - duration;
-                    Thread.sleep(sleep);
+                if (realTime) {
+                    final long before = System.nanoTime();
+                    world.update();
+                    final long after = System.nanoTime();
+                    final long duration = (after - before) / NANOS_IN_MILLIS;
+                    if (duration < CYCLE) {
+                        final long sleep = CYCLE - duration;
+                        Thread.sleep(sleep);
+                    }
+                } else {
+                    world.update();
                 }
                 cycle.incrementAndGet();
             } catch (final Exception | Error e) {

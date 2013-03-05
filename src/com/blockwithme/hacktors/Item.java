@@ -119,6 +119,6 @@ public class Item {
 
     /** Returns true if this item has been destroyed. */
     public boolean destroyed() {
-        return life == 0;
+        return life <= 0;
     }
 }

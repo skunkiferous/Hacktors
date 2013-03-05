@@ -234,6 +234,7 @@ public class Mobile {
 
         }
         equipment = (Item[]) ArrayUtils.add(equipment, theItem);
+        controller.itemAdded(theItem);
         return true;
     }
 
@@ -301,9 +302,11 @@ public class Mobile {
                     item.setLife(armorLife - damage);
                     damage = 0;
                     i = equipment.length;
+                    controller.equipmentDamaged(item, damage);
                 } else {
                     item.setLife(0);
                     damage -= armorLife;
+                    controller.equipmentDamaged(item, armorLife);
                     removeItem(i--);
                 }
             }
@@ -314,7 +317,14 @@ public class Mobile {
             controller.damaged(damage, source);
             if (isDead()) {
                 controller.dead();
-                getChunk().setMobile(position.getX(), position.getY(), null);
+                final Chunk chunk = getChunk();
+                final int x = position.getX();
+                final int y = position.getY();
+                chunk.setMobile(x, y, null);
+                for (int j = 0; j < equipment.length; j++) {
+                    chunk.addItem(x, y, equipment[j]);
+                }
+                equipment = Item.EMPTY;
                 return true;
             }
         }

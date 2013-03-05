@@ -108,6 +108,22 @@ public abstract class AbstractMobileController implements MobileController {
     }
 
     /* (non-Javadoc)
+     * @see com.blockwithme.hacktors.MobileController#equipmentDamaged(com.blockwithme.hacktors.Item,int)
+     */
+    @Override
+    public void equipmentDamaged(final Item item, final int amount) {
+        // NOP
+    }
+
+    /* (non-Javadoc)
+     * @see com.blockwithme.hacktors.MobileController#fired(com.blockwithme.hacktors.Item)
+     */
+    @Override
+    public void fired(final Item item) {
+        // NOP
+    }
+
+    /* (non-Javadoc)
      * @see com.blockwithme.hacktors.MobileController#stop()
      */
     @Override
