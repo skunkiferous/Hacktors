@@ -15,14 +15,20 @@
  */
 package com.blockwithme.hacktors;
 
+import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+
 /**
  * The main class.
  *
  * @author monster
  */
-public class Main {
-    /** Starts the game. */
-    public static void main(final String[] args) {
+public class Main implements BundleActivator {
+    /**
+     *
+     */
+    private static void start() {
         final World world = new World();
         final PlayerConsole console = new PlayerConsole(world);
         final PlayerMobileController controller = new PlayerMobileController(
@@ -41,5 +47,26 @@ public class Main {
         controller.setMobile(avatar);
         world.getClock().start();
         System.exit(0);
+    }
+
+    /** Starts the game. */
+    public static void main(final String[] args) {
+        start();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void start(final BundleContext context) throws Exception {
+        start();
+        LogFactory
+                .getLog(Main.class)
+                .info(" **************start(final BundleContext context)****************");
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void stop(final BundleContext context) throws Exception {
+        // TODO Auto-generated method stub
+
     }
 }

@@ -20,7 +20,7 @@ import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import com.blockwithme.util.Enum40;
+import com.blockwithme.base40.Enum40;
 import com.google.common.base.Preconditions;
 
 /**

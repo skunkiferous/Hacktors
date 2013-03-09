@@ -17,7 +17,7 @@ package com.blockwithme.hacktors;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import com.blockwithme.util.Enum40;
+import com.blockwithme.base40.Enum40;
 
 /**
  * The possible item general categories.

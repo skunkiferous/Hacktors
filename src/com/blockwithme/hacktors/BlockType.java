@@ -17,7 +17,7 @@ package com.blockwithme.hacktors;
 
 import org.apache.commons.lang.ArrayUtils;
 
-import com.blockwithme.util.Enum40;
+import com.blockwithme.base40.Enum40;
 import com.google.common.base.Preconditions;
 
 /**
@@ -36,42 +36,55 @@ public class BlockType extends Enum40<BlockType> implements Displayable {
     /** The Bedrock item type. */
     public static final BlockType Bedrock = new BlockType(0, true, '!',
             Color.RED);
+
     /** The Empty item type. */
     public static final BlockType Empty = new BlockType(0, false, ' ',
             Color.WHITE);
+
     /** The Stone item type. */
     public static final BlockType Stone = new BlockType(100, true, '$',
             Color.YELLOW);
+
     /** The Earth item type. */
     public static final BlockType Earth = new BlockType(30, true, '&',
             Color.MAGENTA);
+
     /** The Tree item type. */
     public static final BlockType Tree = new BlockType(30, true, '#',
             Color.GREEN);
+
     /** The ClosedDoor item type. */
     public static final BlockType ClosedDoor = new BlockType(20, true, '+',
             Color.BLUE);
+
     /** The OpenDoor item type. */
     public static final BlockType OpenDoor = new BlockType(10, false, '-',
             Color.YELLOW);
+
     /** The ClosedChest item type. */
     public static final BlockType ClosedChest = new BlockType(20, false, '[',
             Color.CYAN);
+
     /** The OpenChest item type. */
     public static final BlockType OpenChest = new BlockType(10, false, ']',
             Color.MAGENTA);
+
     /** The StairsUp item type. */
     public static final BlockType StairsUp = new BlockType(200, false, '<',
             Color.RED);
+
     /** The StairsDown item type. */
     public static final BlockType StairsDown = new BlockType(200, false, '>',
             Color.RED);
+
     /** The Anvil item type. */
     public static final BlockType Anvil = new BlockType(100, false, '=',
             Color.BLUE);
+
     /** The Trap item type. */
     public static final BlockType Trap = new BlockType(20, false, '^',
             Color.YELLOW);
+
     // CHECKSTYLE.ON: ConstantName
 
     /** All the values */
@@ -96,21 +109,6 @@ public class BlockType extends Enum40<BlockType> implements Displayable {
     private final transient Color color;
 
     /**
-     * Are blocks of this type solid?
-     * A mobile cannot be located where a solid block is.
-     */
-    public boolean isSolid() {
-        return solid;
-    }
-
-    /**
-     * Are blocks of this type damageable?
-     */
-    public boolean isDamageable() {
-        return life != 0;
-    }
-
-    /**
      * Chooses one block type at random.
      * Note that Bedrock is excluded from the selection.
      */
@@ -130,6 +128,33 @@ public class BlockType extends Enum40<BlockType> implements Displayable {
         color = Preconditions.checkNotNull(theColor);
     }
 
+    /** Returns the display character color. */
+    @Override
+    public Color getColor() {
+        return color;
+    }
+
+    /** Graphic representation of this block. */
+    @Override
+    public char getDisplay() {
+        return display;
+    }
+
+    /**
+     * Are blocks of this type damageable?
+     */
+    public boolean isDamageable() {
+        return life != 0;
+    }
+
+    /**
+     * Are blocks of this type solid?
+     * A mobile cannot be located where a solid block is.
+     */
+    public boolean isSolid() {
+        return solid;
+    }
+
     /** Finalizes the initialization of an block of this type. */
     public Block postInit(final Block block) {
         Preconditions.checkNotNull(block);
@@ -144,17 +169,5 @@ public class BlockType extends Enum40<BlockType> implements Displayable {
             block.setContent(content);
         }
         return block;
-    }
-
-    /** Graphic representation of this block. */
-    @Override
-    public char getDisplay() {
-        return display;
-    }
-
-    /** Returns the display character color. */
-    @Override
-    public Color getColor() {
-        return color;
     }
 }

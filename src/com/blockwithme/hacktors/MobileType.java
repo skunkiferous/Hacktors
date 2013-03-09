@@ -17,7 +17,7 @@ package com.blockwithme.hacktors;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import com.blockwithme.util.Enum40;
+import com.blockwithme.base40.Enum40;
 import com.google.common.base.Preconditions;
 
 /**
@@ -40,18 +40,22 @@ public class MobileType extends Enum40<MobileType> implements Displayable {
     public static final MobileType Pig = new MobileType(20, 1, 3, 'P',
             Color.MAGENTA, MobileType.EMPTY, new ItemType[] { ItemType.Apple },
             10, ItemType.Meat, ItemType.Meat, ItemType.Meat);
+
     /** Humans (including the player) */
     public static final MobileType Human = new MobileType(100, 5, 4, 'H',
             Color.WHITE, new MobileType[] { Pig }, new ItemType[] {
                     ItemType.Apple, ItemType.Meat }, 8, null, null, null);
+
     /** Zombies! */
     public static final MobileType Zombie = new MobileType(100, 10, 3, 'Z',
             Color.GREEN, new MobileType[] { Human }, ItemType.EMPTY, 10, null,
             ItemType.Bone, ItemType.Bone);
+
     /** Dogs */
     public static final MobileType Dog = new MobileType(50, 10, 4, 'D',
             Color.YELLOW, new MobileType[] { Zombie },
             new ItemType[] { ItemType.Meat }, 5, ItemType.Bone);
+
     // CHECKSTYLE.ON: ConstantName
 
     /** All MobileTypes. */
@@ -105,71 +109,9 @@ public class MobileType extends Enum40<MobileType> implements Displayable {
         return result;
     }
 
-    /** The display character. */
-    @Override
-    public char getDisplay() {
-        return display;
-    }
-
-    /** Returns the display character color. */
-    @Override
-    public Color getColor() {
-        return color;
-    }
-
-    /** Damage per attack. */
-    public int getDamage() {
-        return damage;
-    }
-
-    /** Starting life points. */
-    public int getLife() {
-        return life;
-    }
-
-    /** Number of actions per cycle. */
-    public int getSpeed() {
-        return speed;
-    }
-
-    /** How far can the mobile see, normally? */
-    public int getPerception() {
-        return perception;
-    }
-
-    /** Returns true, if this mobile type can use tools and weapons. */
-    public boolean isToolUser() {
-        return (this == MobileType.Human);
-    }
-
-    /** Types of food that this mobile eats. */
-    public ItemType[] getFood() {
-        return food;
-    }
-
-    /** The other mobiles type that it hunts/attacks on sight. */
-    public MobileType[] getHunts() {
-        return hunts;
-    }
-
-    /** The other mobiles type that it runs away from. */
-    public MobileType[] fears() {
-        return fears;
-    }
-
     /** Chooses one mobile type at random. */
     public static MobileType choose() {
         return ALL_SET[Util.nextInt(ALL_SET.length)];
-    }
-
-    /** Constructor */
-    protected MobileType(final int theLife, final int theDamage,
-            final int thePerception, final char theDisplay,
-            final Color theColor, final MobileType[] theHunts,
-            final ItemType[] theFood, final int theSpeed,
-            final ItemType... theDroppings) {
-        this(MobileType.class, theLife, theDamage, thePerception, theDisplay,
-                theColor, theHunts, theFood, theSpeed, theDroppings);
     }
 
     /** Constructor */
@@ -190,6 +132,81 @@ public class MobileType extends Enum40<MobileType> implements Displayable {
         food = Util.checkNotNull(theFood);
         // theDroppings can contain null
         droppings = Preconditions.checkNotNull(theDroppings);
+    }
+
+    /** Constructor */
+    protected MobileType(final int theLife, final int theDamage,
+            final int thePerception, final char theDisplay,
+            final Color theColor, final MobileType[] theHunts,
+            final ItemType[] theFood, final int theSpeed,
+            final ItemType... theDroppings) {
+        this(MobileType.class, theLife, theDamage, thePerception, theDisplay,
+                theColor, theHunts, theFood, theSpeed, theDroppings);
+    }
+
+    /**
+     * If implemented by the "additional data", the postInit() method will be
+     * called after the Enum40 values were fully initialized.
+     */
+    @Override
+    protected void postInit(final MobileType[] allSet) {
+        if (this == Pig) {
+            fears = new MobileType[] { Dog };
+        } else if (this == Human) {
+            fears = new MobileType[] { Zombie };
+        }
+    }
+
+    /** The other mobiles type that it runs away from. */
+    public MobileType[] fears() {
+        return fears;
+    }
+
+    /** Returns the display character color. */
+    @Override
+    public Color getColor() {
+        return color;
+    }
+
+    /** Damage per attack. */
+    public int getDamage() {
+        return damage;
+    }
+
+    /** The display character. */
+    @Override
+    public char getDisplay() {
+        return display;
+    }
+
+    /** Types of food that this mobile eats. */
+    public ItemType[] getFood() {
+        return food;
+    }
+
+    /** The other mobiles type that it hunts/attacks on sight. */
+    public MobileType[] getHunts() {
+        return hunts;
+    }
+
+    /** Starting life points. */
+    public int getLife() {
+        return life;
+    }
+
+    /** How far can the mobile see, normally? */
+    public int getPerception() {
+        return perception;
+    }
+
+    /** Number of actions per cycle. */
+    public int getSpeed() {
+        return speed;
+    }
+
+    /** Returns true, if this mobile type can use tools and weapons. */
+    public boolean isToolUser() {
+        return (this == MobileType.Human);
     }
 
     /**
@@ -213,18 +230,5 @@ public class MobileType extends Enum40<MobileType> implements Displayable {
             }
         }
         return mobile;
-    }
-
-    /**
-     * If implemented by the "additional data", the postInit() method will be
-     * called after the Enum40 values were fully initialized.
-     */
-    @Override
-    protected void postInit(final MobileType[] allSet) {
-        if (this == Pig) {
-            fears = new MobileType[] { Dog };
-        } else if (this == Human) {
-            fears = new MobileType[] { Zombie };
-        }
     }
 }

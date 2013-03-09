@@ -57,25 +57,9 @@ public class Clock implements Runnable {
         world = Preconditions.checkNotNull(theWorld);
     }
 
-    /** Do we run in real-time, or do we wait for the user input? */
-    public boolean isRealTime() {
-        return realTime;
-    }
-
-    /** Sets the real-time flag. */
-    public void setRealTime(final boolean theRealTime) {
-        realTime = theRealTime;
-    }
-
-    /** Stop the run. */
-    public void stop() {
-        stop = true;
-    }
-
-    /** Start the run. */
-    public void start() {
-        stop = false;
-        run();
+    /** The clock cycle. */
+    public int getCycle() {
+        return cycle.get();
     }
 
     /** The elapsed time. */
@@ -83,9 +67,9 @@ public class Clock implements Runnable {
         return System.currentTimeMillis() - startrTime;
     }
 
-    /** The clock cycle. */
-    public int getCycle() {
-        return cycle.get();
+    /** Do we run in real-time, or do we wait for the user input? */
+    public boolean isRealTime() {
+        return realTime;
     }
 
     /* (non-Javadoc)
@@ -119,5 +103,21 @@ public class Clock implements Runnable {
                 mobile.getController().stop();
             }
         });
+    }
+
+    /** Sets the real-time flag. */
+    public void setRealTime(final boolean theRealTime) {
+        realTime = theRealTime;
+    }
+
+    /** Start the run. */
+    public void start() {
+        stop = false;
+        run();
+    }
+
+    /** Stop the run. */
+    public void stop() {
+        stop = true;
     }
 }
