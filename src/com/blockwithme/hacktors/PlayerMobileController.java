@@ -395,20 +395,20 @@ public class PlayerMobileController implements MobileController {
     /** Gives out the help. */
     private void help() {
         final StringBuilder msg = msg();
-        msg.append("h       - help (What you see now)\n");
-        msg.append("q       - quit (Terminate the game)\n");
+        msg.append("h/?     - Help (What you see now)\n");
+        msg.append("q/ESC   - Quit (Terminate the game)\n");
         msg.append("w/UP    - up (Move towards the top of the screen)\n");
         msg.append("s/DOWN  - down (Move towards the bottom of the screen)\n");
         msg.append("a/LEFT  - left (Move towards the left of the screen)\n");
         msg.append("d/RIGHT - right (Move towards the right of the screen)\n");
-        msg.append("o       - open (A chest or door)\n");
-        msg.append("c       - close (A chest or door)\n");
+        msg.append("o       - Open (A chest or door)\n");
+        msg.append("c       - Close (A chest or door)\n");
         msg.append("<       - go upstairs (If there is a stairs up!)\n");
         msg.append(">       - go downstairs (If there is a stairs down!)\n");
-        msg.append("e       - eat (If you have food)\n");
-        msg.append("b       - put down block (If you have a block)\n");
-        msg.append("p       - pickup items on floor (If any)\n");
-        msg.append("i       - craft items (If you see an anvil)\n");
+        msg.append("e       - Eat (If you have food)\n");
+        msg.append("b       - put down Block (If you have a block)\n");
+        msg.append("p/,     - loot/Pickup items on floor (If any)\n");
+        msg.append("i       - craft Items (If you see an anvil)\n");
         msg.append("0-9     - Throw item with given number.\n");
         msg.append("TAB     - Switch between turn-based and real-time modes.\n");
     }

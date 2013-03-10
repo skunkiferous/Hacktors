@@ -191,7 +191,7 @@
 		<dependency>
 			<groupId>com.blockwithme</groupId>
 			<artifactId>Base40</artifactId>
-			<version>0.0.5</version>
+			<version>0.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.blockwithme</groupId>
