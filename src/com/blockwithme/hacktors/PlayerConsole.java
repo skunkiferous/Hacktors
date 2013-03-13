@@ -15,6 +15,7 @@
  */
 package com.blockwithme.hacktors;
 
+import java.awt.Font;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +24,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import com.googlecode.lanterna.TerminalFacade;
 import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.terminal.swing.TerminalAppearance;
+import com.googlecode.lanterna.terminal.swing.TerminalPalette;
 
 /**
  * Interface between the game and a player.
@@ -55,7 +58,11 @@ public class PlayerConsole {
     /** Constructor */
     public PlayerConsole(final World theWorld) {
         if (System.getProperty("os.name", "").toLowerCase().contains("windows")) {
-            terminal = TerminalFacade.createSwingTerminal();
+            final TerminalAppearance appearance = new TerminalAppearance(
+                    new Font("Courier New", Font.PLAIN, 18), new Font(
+                            "Courier New", Font.BOLD, 18),
+                    TerminalPalette.DEFAULT, true);
+            terminal = TerminalFacade.createSwingTerminal(appearance);
         } else {
             terminal = TerminalFacade.createTerminal();
         }
@@ -118,11 +125,19 @@ public class PlayerConsole {
             return "a";
         case ArrowRight:
             return "d";
+        case Escape:
+            return "q";
         case Tab:
             clock.setRealTime(!clock.isRealTime());
             return "";
         default:
-            return String.valueOf(key.getCharacter());
+            char c = key.getCharacter();
+            if (c == ',') {
+                c = 'p';
+            } else if (c == '?') {
+                c = 'h';
+            }
+            return String.valueOf(c);
         }
     }
 }
