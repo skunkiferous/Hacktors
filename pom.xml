@@ -43,6 +43,7 @@
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
 						<Export-Package>com.blockwithme.hacktors</Export-Package>
 						<Bundle-Activator>com.blockwithme.hacktors.Main</Bundle-Activator>
+						<Import-Package>!javax.annotation,*</Import-Package>
 					</instructions>
 				</configuration>
 			</plugin>
@@ -211,7 +212,6 @@
 		<url>https://github.com/skunkiferous/Hacktors</url>
 	</scm>
 	<url>https://github.com/skunkiferous/Hacktors</url>
-
 	<repositories>
 		<repository>
 			<id>blockwithme-mvn-repo</id>
