@@ -28,3 +28,15 @@ Phase 4:
 
 * Convert the code, to allow dynamic extension of the core through thrid-party, uncoordinated, extentions.
 
+OSGi deployment :
+* OSGi bundles were tested on [apache-karaf](http://karaf.apache.org/) (2.3.1) 
+* Download and extract karaf distributable.
+* Edit <karaf_home>/etc/org.ops4j.pax.url.mvn.cfg and add following two maven repository in the comma separated list of repositories :
+  https://raw.github.com/skunkiferous/Maven/master 
+	http://repository.springsource.com/maven/bundles/release
+* Save hactors_karaf_deployer.xml (from https://github.com/skunkiferous/Hacktors) in some directory.
+* Open a command prompt and change the current directory to Karaf-home. and Start Karaf using the following command 
+	bin/karaf.bat
+* On kafar prompt use the following commands to deploy the bundles:
+	features:addUrl file:<path_to_hactors_karaf_deployer.xml>
+	features:install blockwithme
