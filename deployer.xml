@@ -1,9 +1,8 @@
-
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.0.0">
-    <feature name="blockwithme" version="1.0.0">
-	
+    <feature name="test" version="1.0.0">
 	<bundle>mvn:com.blockwithme/threetenbp/0.8.1</bundle>
-	<bundle>mvn:org.agilewiki.jactor/jactor-api/0.0.1</bundle>
+	<bundle>mvn:org.threeten/threetenbp/0.8</bundle>
+    <bundle>mvn:org.agilewiki.jactor/jactor-api/0.0.1</bundle>
 	<bundle>mvn:org.agilewiki.jactor/jactor-impl/0.0.1</bundle>
 	<bundle>mvn:org.agilewiki.jactor/jactor-util/0.0.1</bundle>
 	<bundle>mvn:com.blockwithme/hppc/0.4.1</bundle>
@@ -23,9 +22,5 @@
 	<bundle>mvn:commons-net/commons-net/2.0</bundle>
 	<bundle>mvn:com.blockwithme/Time/0.0.9</bundle>
 	<bundle>mvn:com.blockwithme/TimeImpl/0.0.9</bundle>
-	<bundle>mvn:com.blockwithme/TActors/0.0.2</bundle>
-	<bundle>mvn:com.blockwithme/Hacktors/0.0.4</bundle>
-	<!--bundle>mvn:org.projectlombok/lombok/0.11.6</bundle-->
-    </feature>
+	</feature>
 </features>
-
