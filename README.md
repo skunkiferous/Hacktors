@@ -35,6 +35,7 @@ OSGi deployment :
   https://raw.github.com/skunkiferous/Maven/master 
 	http://repository.springsource.com/maven/bundles/release
 * Save hactors_karaf_deployer.xml (from https://github.com/skunkiferous/Hacktors) in some directory.
+* Add org.osgi.framework.system.packages.extra=sun.util.calendar in karaf/etc/config.properties
 * Open a command prompt and change the current directory to Karaf-home. and Start Karaf using the following command 
 	bin/karaf.bat
 * On kafar prompt use the following commands to deploy the bundles:
